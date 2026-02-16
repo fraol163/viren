@@ -39,7 +39,7 @@ As the spiritual successor to the **Cha** project, Viren takes the interactive A
 4.  [The Neural Difference](#6-the-neural-difference)
 5.  [Installation Deep-Dive](#7-installation-deep-dive)
     *   [Linux & macOS](#linux--macos)
-    *   [Windows Environment Setup](#windows-environment-setup)
+    *   [Windows (WSL2)](#windows-wsl2)
     *   [Android (Termux)](#android-termux)
 6.  [Quick Start Guide](#8-quick-start-guide)
 7.  [Interactive Command Reference](#9-interactive-command-reference)
@@ -105,19 +105,6 @@ Viren does not have a backend. Your requests go directly from your local binary 
 
 ## 7. Installation Deep-Dive
 
-### NPM Global Install (Recommended for Windows & Cross-platform)
-If you have Node.js and Go installed, you can install Viren globally via NPM.
-
-**From GitHub (until published to registry):**
-```bash
-npm install -g https://github.com/fraol163/viren.git
-```
-
-**From Local Source:**
-```bash
-npm install -g .
-```
-
 ### Linux & macOS (Automated Script)
 The recommended way to install Viren on Unix systems is via our production-ready shell script.
 
@@ -125,59 +112,27 @@ The recommended way to install Viren on Unix systems is via our production-ready
 curl -sSL https://raw.githubusercontent.com/fraol163/viren/main/install.sh | bash
 ```
 
-### Windows Environment Setup
-Viren is engineered to be a first-class citizen on the Windows platform. Unlike many CLI tools that treat Windows as an afterthought, Viren includes native optimizations for the Windows Console API to ensure that ANSI colors, high-fidelity borders, and interactive menus behave exactly as they do on Unix systems.
+### Windows (WSL2)
+Viren is fully supported on Windows via the **Windows Subsystem for Linux (WSL2)**. This provides a native, high-performance environment where Viren's advanced Unix features (like shell recording and fuzzy-finding) work flawlessly.
 
-#### 1. Recommended Method: NPM Global Distribution
-For most users, the NPM method is the most robust as it handles the "Wrapper Logic" and binary placement automatically.
-- **Prerequisites**: [Node.js (LTS)](https://nodejs.org/) and [Go 1.21+](https://go.dev/dl/).
-- **Execution**: Open **PowerShell** (as Administrator) and run:
-```powershell
-# Install directly from the high-performance source
-npm install -g https://github.com/fraol163/viren.git
-```
-*How it works: This triggers `postinstall.js`, which invokes the Go compiler to generate a native `viren.exe` optimized for your specific CPU architecture (x64 or ARM64).*
+#### 1. Setup WSL2
+If you haven't already, enable WSL2 and install a Linux distribution (we recommend **Ubuntu**):
+1.  Open **PowerShell** as Administrator.
+2.  Run the command: `wsl --install`.
+3.  Restart your computer if prompted.
+4.  Launch your Linux distribution from the Start Menu and complete the initial user setup.
 
-#### 2. Developer Build (From Source)
-For contributors and power users who want the latest commits:
-```powershell
-# Clone the neural engine
-git clone https://github.com/fraol163/viren.git
-cd viren
-
-# Compile with optimization flags to strip debug symbols (reduces .exe size)
-go build -ldflags "-s -w" -o viren.exe cmd/viren/main.go
+#### 2. Install Viren
+Open your WSL2 terminal (e.g., Ubuntu) and run the standard installation command:
+```bash
+curl -sSL https://raw.githubusercontent.com/fraol163/viren/main/install.sh | bash
 ```
 
-#### 3. Persistent API Key Configuration
-Windows handles environment variables differently than Linux. To avoid re-entering your keys in every session, choose one of these methods:
-
-**A. The PowerShell Profile Method (Best for Devs)**
-This is the most reliable way to manage multiple keys without hitting character limits.
-1. Run `code $PROFILE` or `notepad $PROFILE` in PowerShell.
-2. Add these lines to the file:
-```powershell
-$env:OPENAI_API_KEY = "sk-proj-your-key-here"
-$env:ANTHROPIC_API_KEY = "sk-ant-your-key-here"
-$env:BRAVE_API_KEY = "your-search-key"
-```
-3. Save and restart PowerShell.
-
-**B. The System-Wide Method (setx)**
-```cmd
-setx OPENAI_API_KEY "your-key-here"
-```
-*Note: `setx` has a 1024-character limit and requires a new terminal window to activate.*
-
-#### 4. Native Windows Feature Support
-- **Virtual Terminal Processing**: Viren automatically calls the Windows kernel to enable `ENABLE_VIRTUAL_TERMINAL_PROCESSING`. This ensures that even in the classic CMD, you get the high-tech "DeepSpace" theme colors.
-- **Fzf Integration**: To use interactive menus, download `fzf.exe` from the [fzf releases](https://github.com/junegunn/fzf/releases) and place it in your `Path`.
-- **Clipboard Sync**: Viren's `!y` command works natively with `clip.exe` on Windows, allowing you to copy AI responses directly into your Windows clipboard for use in Slack, Teams, or Outlook.
-
-#### 5. Troubleshooting the Windows Environment
-- **Execution Policy Error**: If you see a "scripts are disabled" error when running the NPM wrapper, run: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`.
-- **Font Rendering**: If the ASCII logo or borders look like "boxes," switch your terminal font to a **Nerd Font** (e.g., *JetBrainsMono NF* or *Cascadia Code NF*).
-- **WSL2 Compatibility**: If you prefer a Linux-native experience, you can run the standard `install.sh` inside WSL2. Viren will behave perfectly within the Linux subsystem while still being able to access your Windows files via `/mnt/c/`.
+#### 3. Why WSL2?
+Unlike a native `.exe`, the WSL2 method ensures:
+- **Full Compatibility**: Direct access to Linux-native tools like `fzf` and `yt-dlp`.
+- **Performance**: High-speed file system operations for large project dumps (`!d`).
+- **Security**: Your AI history and configuration remain isolated within the secure Linux environment.
 
 ### Android (Termux)
 1. Install Termux.

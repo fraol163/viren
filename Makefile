@@ -5,7 +5,7 @@ BINARY_NAME=viren
 BINARY_PATH=./bin/$(BINARY_NAME)
 BUILD_DIR=./bin
 CMD_DIR=./cmd/viren
-MAIN_FILE=$(CMD_DIR)/main.go
+MAIN_FILE=./$(CMD_DIR)
 
 VERSION?=v1.0.0
 BUILD_TIME=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")

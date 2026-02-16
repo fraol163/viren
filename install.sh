@@ -318,7 +318,7 @@ execute_build() {
 	if [[ "$os" == "android" ]]; then
 		if [[ "$build_method" == "direct" ]]; then
 			log "Building for Android (disabling CGO)..."
-			CGO_ENABLED=0 go build -o "$output_path" cmd/viren/main.go || error "Failed to build Viren"
+			CGO_ENABLED=0 go build -o "$output_path" ./cmd/viren || error "Failed to build Viren"
 		else
 			log "Building for Android (disabling CGO)..."
 			CGO_ENABLED=0 make build || error "Build failed"
@@ -331,7 +331,7 @@ execute_build() {
 		warning "  Fedora: sudo dnf install tesseract-devel leptonica-devel"
 		warning "  macOS: brew install tesseract"
 		if [[ "$build_method" == "direct" ]]; then
-			CGO_ENABLED=0 go build -o "$output_path" cmd/viren/main.go || error "Failed to build Viren"
+			CGO_ENABLED=0 go build -o "$output_path" ./cmd/viren || error "Failed to build Viren"
 		else
 			CGO_ENABLED=0 make build || error "Build failed"
 		fi
@@ -340,7 +340,7 @@ execute_build() {
 		brew_prefix=$(brew --prefix)
 		if [[ "$build_method" == "direct" ]]; then
 			log "Building for macOS on Apple Silicon with Homebrew flags..."
-			CGO_CPPFLAGS="-I${brew_prefix}/include" CGO_LDFLAGS="-L${brew_prefix}/lib" go build -o "$output_path" cmd/viren/main.go || error "Failed to build Viren"
+			CGO_CPPFLAGS="-I${brew_prefix}/include" CGO_LDFLAGS="-L${brew_prefix}/lib" go build -o "$output_path" ./cmd/viren || error "Failed to build Viren"
 		else
 			log "Building for macOS on Apple Silicon with Homebrew flags..."
 			export CGO_CPPFLAGS="-I${brew_prefix}/include"
@@ -349,7 +349,7 @@ execute_build() {
 		fi
 	else
 		if [[ "$build_method" == "direct" ]]; then
-			go build -o "$output_path" cmd/viren/main.go || error "Failed to build Viren"
+			go build -o "$output_path" ./cmd/viren || error "Failed to build Viren"
 		else
 			log "Building project..."
 			make build || error "Build failed"
@@ -764,7 +764,7 @@ main() {
 	done
 
 	if [[ "$build_only_flag" == true ]]; then
-		if [[ ! -f "go.mod" ]] || [[ ! -f "cmd/viren/main.go" ]]; then
+		if [[ ! -f "go.mod" ]] || [[ ! -f "./cmd/viren/main.go" ]]; then
 			error "Build option requires running from the Viren repository root directory"
 		fi
 
@@ -776,7 +776,7 @@ main() {
 		exit 0
 	fi
 
-	if [ -f "go.mod" ] && [ -f "cmd/viren/main.go" ] && [ -d ".git" ]; then
+	if [ -f "go.mod" ] && [ -f "./cmd/viren/main.go" ] && [ -d ".git" ]; then
 		log "Running installer from existing local repository"
 
 		if [[ "$refresh_deps_flag" == true ]]; then

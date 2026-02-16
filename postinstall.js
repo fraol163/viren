@@ -13,7 +13,7 @@ function error(msg) {
 
 const isWindows = process.platform === 'win32';
 const binDir = path.join(__dirname, 'bin');
-const exePath = path.join(binDir, isWindows ? 'viren.exe' : 'viren');
+const exePath = path.join(binDir, isWindows ? 'viren-core.exe' : 'viren-core');
 
 if (!fs.existsSync(binDir)) {
     fs.mkdirSync(binDir, { recursive: true });

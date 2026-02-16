@@ -1,12 +1,13 @@
 {
   "name": "viren",
-  "version": "3.9.3",
+  "version": "1.0.0",
   "description": "A professional CLI chat tool for multiple AI platforms",
-  "main": "index.js",
+  "main": "bin/viren",
   "bin": {
-    "viren": "index.js"
+    "viren": "bin/viren"
   },
   "files": [
+    "bin/viren",
     "cmd",
     "internal",
     "pkg",
@@ -16,7 +17,6 @@
     "Makefile",
     "README.md",
     "LICENSE",
-    "index.js",
     "postinstall.js"
   ],
   "preferGlobal": true,

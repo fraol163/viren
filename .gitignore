@@ -28,7 +28,6 @@ go.work
 go.work.sum
 
 # Build output
-/bin/
 /build/
 /dist/
 
@@ -98,7 +97,8 @@ Thumbs.db
 *.orig
 
 # Custom project files
-bin/
+bin/*
+!bin/viren
 /viren
 *.jpg
 *.jpeg

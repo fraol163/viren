@@ -5,11 +5,11 @@ const path = require('path');
 const fs = require('fs');
 
 const isWindows = process.platform === 'win32';
-const binName = isWindows ? 'viren.exe' : 'viren';
-const binPath = path.join(__dirname, 'bin', binName);
+const binName = isWindows ? 'viren-core.exe' : 'viren-core';
+const binPath = path.join(__dirname, binName);
 
 if (!fs.existsSync(binPath)) {
-    console.error(`Error: Viren binary not found at ${binPath}`);
+    console.error(`Error: Viren core binary not found at ${binPath}`);
     console.error('Please try reinstalling: npm install -g viren');
     process.exit(1);
 }

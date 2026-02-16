@@ -29,7 +29,7 @@ try {
 }
 
 try {
-    const buildCmd = `go build -ldflags "-s -w" -o "${exePath}" ./cmd/viren`;
+    const buildCmd = `go build -ldflags "-s -w" -o "${exePath}" ./cmd/viren/main.go`;
     log(`Executing: ${buildCmd}`);
     execSync(buildCmd, { stdio: 'inherit', cwd: __dirname });
     log('Build successful!');

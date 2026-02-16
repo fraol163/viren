@@ -98,7 +98,7 @@ Thumbs.db
 *.orig
 
 # Custom project files
-viren
+/viren
 *.jpg
 *.jpeg
 *.srt

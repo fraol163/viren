@@ -4,7 +4,7 @@
   "description": "A professional CLI chat tool for multiple AI platforms",
   "main": "index.js",
   "bin": {
-    "viren": "bin/viren"
+    "viren": "index.js"
   },
   "files": [
     "bin",
@@ -16,7 +16,9 @@
     "install.sh",
     "Makefile",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "index.js",
+    "postinstall.js"
   ],
   "preferGlobal": true,
   "repository": {
@@ -24,7 +26,7 @@
     "url": "git+https://github.com/fraol163/viren.git"
   },
   "scripts": {
-    "install": "bash install.sh",
+    "postinstall": "node postinstall.js",
     "test": "make test"
   },
   "keywords": [

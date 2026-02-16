@@ -105,8 +105,15 @@ Viren does not have a backend. Your requests go directly from your local binary 
 
 ## 7. Installation Deep-Dive
 
-### Linux & macOS
-The recommended way to install Viren is via our production-ready shell script.
+### NPM Global Install (Recommended for Windows & Cross-platform)
+If you have Node.js and Go installed, you can install Viren globally via NPM. This will automatically build the binary for your specific architecture.
+
+```bash
+npm install -g viren
+```
+
+### Linux & macOS (Automated Script)
+The recommended way to install Viren on Unix systems is via our production-ready shell script.
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/fraol163/viren/main/install.sh | bash

@@ -1,4 +1,5 @@
-# VIREN(Virtual Enginner): The Advanced Neural Command Interface
+# VIREN
+(Virtual Enginner): The Advanced Neural Command Interface
 
 <p align="center">
 <pre>

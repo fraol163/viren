@@ -7,7 +7,6 @@
     "viren": "index.js"
   },
   "files": [
-    "bin",
     "cmd",
     "internal",
     "pkg",

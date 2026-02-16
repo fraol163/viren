@@ -1,81 +1,145 @@
-# Viren: Full Technical Architecture
+# Viren: The Neural Architect's Internal Manual
 
-Viren is built for speed, modularity, and extensibility. This document provides a deep-dive into the internal mechanics of the binary, explaining how we achieve sub-100ms startup times while maintaining complex state and multi-platform support.
-
-## 1. High-Level Design Philosophy
-
-Viren follows the **Unix Philosophy**: small, sharp, and composable.
-- **Concurrency**: We use Go's `goroutines` to ensure that network I/O never blocks the UI.
-- **Static Typing**: Every data structure (from a single chat message to a full system configuration) is strictly typed in `pkg/types/types.go`.
-- **Stateless Networking**: The `platform` module treats each API request as a unique event, allowing for seamless switching between models mid-conversation.
+Viren is a high-performance, concurrent Command Line Interface (CLI) engineered for developers who demand absolute speed, total privacy, and extreme modularity. This document provides an exhaustive, low-level breakdown of the internal mechanics, module interactions, and design decisions that define the Viren ecosystem.
 
 ---
 
-## 2. Core Module Breakdown
+## 1. High-Level Design Philosophy: The Go Advantage
 
-### A. The Command Interface (`cmd/viren/main.go`)
-The "Bootstrap" layer.
-- **Execution Flow**: It first parses CLI flags (like `-p` or `-m`). If a direct query is provided (e.g., `viren "hello"`), it executes in "Single-Shot" mode. If not, it enters the "Interactive Loop."
-- **Onboarding**: It checks for the existence of `~/.viren/config.json`. If missing, it triggers the `config.RunOnboarding` wizard.
-- **Signal Control**: It manages a global `context.CancelFunc` to ensure that hitting `Ctrl+C` kills the active AI stream without terminating the whole application.
+The Viren architecture is rooted in the **Unix Philosophy**: build small, sharp tools that communicate via standard interfaces. By choosing GoLang as our primary engine, we achieve several critical architectural goals:
 
-### B. The Chat Manager (`internal/chat/`)
-The "Orchestrator."
-- **History Management**: It maintains an in-memory slice of `ChatMessage` structs. It is responsible for appending the "System Prompt" (which includes the user's role and the current mode) to every request.
-- **Modes & Personalities**: This module contains the logic for the 40+ domain modes. When you switch to `!v aerospace`, the Chat Manager re-calculates the entire system prompt and resets the context window.
-- **Export Logic**: It contains the regex-based detection for code blocks and the intelligent filename generator that scans code for keywords (like `package` or `func`) to suggest names.
+### A. Non-Blocking, Asynchronous Core
+Unlike many AI wrappers written in Python or JavaScript, Viren is built in **GoLang**. It leverages Go's native `goroutines` and `channels` to ensure that network I/O, file system scanning, and terminal rendering never block each other. While an API request is in flight, the UI engine continues to run high-refresh animations and monitor for user signals (like `Ctrl+C`).
 
-### C. The Platform Manager (`internal/platform/`)
-The "Translator."
-- **Standardization**: Every AI provider uses a slightly different JSON schema. The Platform Manager abstracts this away. It takes a Viren `ChatRequest` and converts it into an `OpenAIRequest`, `AnthropicRequest`, etc.
-- **Streaming (SSE)**: It implements a custom Server-Sent Events parser. This allows Viren to render the AI's response character-by-character as it arrives, rather than waiting for the entire block.
-- **Authentication**: It fetches keys from the environment variables, ensuring that no secrets are ever persisted in the binary.
+### B. Static Typing & Data Sovereignty
+Every data structure in Viren—from a single chat message fragment to a project-wide project dump—is strictly typed in `pkg/types/types.go`. This "Contract-First" approach ensures that the Platform Manager always sends perfectly valid JSON to third-party APIs, eliminating the "undefined" errors common in dynamic toolchains.
 
-### D. The UI Engine (`internal/ui/`)
-The "Renderer."
-- **ANSI Engine**: We avoid heavy TUI libraries (like Bubbletea) to keep the binary size small and the startup fast. Instead, we use raw ANSI escape codes for coloring, borders, and animations.
-- **Fzf Bridge**: Viren spawns `fzf` as a subprocess for all selection menus. This provides a lightning-fast, searchable interface that users already know and love.
-- **OCR Logic**: Utilizes `tesseract` bindings (if CGO is enabled) to convert images loaded via `!l` into text context.
-
-### E. The Config System (`internal/config/`)
-The "Persistence" layer.
-- **Schema Management**: It handles the merging of the `DefaultConfig` with the user's `config.json`.
-- **Safety**: It implements the "Shallow Load" logic, preventing the application from scanning system-critical folders.
+### C. Zero-Runtime Initialization
+Viren intentionally avoids heavy TUI (Terminal User Interface) libraries. Instead, we have built a custom ANSI compositor. This allows Viren to bypass the complex "handshake" and screen-redrawing sequences required by frameworks, resulting in a cold-start time that is practically instantaneous (<100ms).
 
 ---
 
-## 3. The Lifecycle of a Prompt
+## 2. Core Module Deep-Dive
 
-To understand Viren, follow a single prompt from input to output:
+### The Bootstrap Layer: `cmd/viren/main.go`
+The primary entry point of the binary.
+- **Flag Orchestration**: Uses the Go `flag` package to parse CLI arguments. It distinguishes between **Interactive Mode** (the default shell) and **Single-Shot Mode** (where output is typically redirected to a file or piped to another Unix tool).
+- **Graceful Signal Management**: Captures `SIGINT` and `SIGTERM`. If a user hits `Ctrl+C` while the AI is streaming, Viren sends a cancellation signal to the networking context, immediately kills the stream, and returns the user to the prompt instead of crashing the process.
+- **Bootstrap Hook**: Checks for the existence of the `~/.viren/` directory structure. If it is a fresh install, it triggers the `config.RunOnboarding` logic before proceeding to the main loop.
 
-1.  **Input**: User types "Refactor this code" and presses `Enter`.
-2.  **Bang Detection**: The `ChatManager` checks if the input starts with `!`. If it doesn't, it proceeds.
-3.  **Context Enrichment**: 
-    - The `ChatManager` looks at the `Messages` slice.
-    - It prepends the `SystemPrompt` (calculated from Mode + Personality + UserProfile).
-    - It appends any files previously loaded via `!l`.
-4.  **Dispatch**: The `PlatformManager` picks the current platform (e.g., `deepseek`).
-5.  **Transformation**: The prompt is wrapped in the DeepSeek-specific JSON format.
-6.  **Stream**: An HTTP POST is opened. As chunks arrive, the `UIEngine` renders them.
-7.  **Auto-Command**: If the response contains a ` ```bash ` block, the `UIEngine` triggers a "DETECTED COMMAND" prompt.
-8.  **Finalize**: Once the stream ends, the `ChatManager` saves the turn to `~/.viren/tmp/` for future sessions.
+### The Brain: `internal/chat/`
+The "State Machine" and orchestrator of conversation.
+- **Context Bundling Engine**: This is the most technically complex module. It must assemble a multi-part prompt containing:
+    1.  **System Mandate**: The base instructions defined by the current Domain Mode (e.g., Zenith).
+    2.  **Neural Profile**: The user's name, role, and environmental goals.
+    3.  **Injected Context**: Text extracted from loaded files, PDFs, or directory dumps.
+    4.  **Short-Term Memory**: The actual message history, trimmed to fit the model's token limit.
+- **Logic Matrix**: Contains the registry of 40+ modes. When a user switches modes via `!v`, the Chat Manager re-calculates the entire system prompt and triggers a "Context Refresh" event.
+- **Smart Export Engine**: Uses advanced regular expressions to detect code blocks in real-time. It implements a naming algorithm that scans for keywords (like `package`, `func`, `class`, or `import`) to provide high-probability filename suggestions.
 
----
-
-## 4. Performance Optimizations
-
-### Why is it so fast?
-1.  **Go standard library**: We use `net/http` and `encoding/json` almost exclusively.
-2.  **Lazy Loading**: We don't load the history database or the 40+ modes into memory until the user actually requests them.
-3.  **No Interpreter**: Unlike Python or Node.js tools, Viren is a compiled static binary. There is no runtime to start up.
-4.  **Subprocess fzf**: By delegating search to `fzf`, we get world-class performance without writing complex search algorithms in Go.
+### The Translator: `internal/platform/`
+The "Communication Hub."
+- **Unified API Adapter**: Every AI provider (OpenAI, Anthropic, Google, DeepSeek) uses a different JSON schema. The Platform Manager abstracts these differences. It takes a generic Viren `ChatRequest` and translates it into the provider-specific payload.
+- **Streaming Implementation (SSE)**: Implements a custom Server-Sent Events client. It parses the incoming byte stream from the API in real-time, extracting text "deltas" and passing them immediately to the UI layer for low-latency rendering.
+- **Local Bridge**: Manages connections to local LLM servers like **Ollama**. It treats `localhost` as a first-class citizen, ensuring that the local experience is just as smooth as the cloud experience.
 
 ---
 
-## 5. Security Architecture
+## 3. Data Persistence Logic
 
-- **Environment-Only Keys**: Viren does not store API keys in its config file. This prevents "Key Leakage" if you share your `config.json`.
-- **Local History**: History files are stored with `0600` permissions (read/write only for the current user).
-- **Process Isolation**: When running shell commands via `!x`, they run in a standard sub-shell with the user's existing permissions.
+Viren utilizes a local-first persistence strategy to ensure that your technical history is never lost or leaked.
 
-**Viren is built to be the most technically robust AI CLI available.**
+### A. The History Database
+Conversations are stored in `~/.viren/tmp/` as high-density JSON files. 
+- **Encryption in Transit**: While files are plain JSON, they are created with `0600` permissions.
+- **Atomicity**: Viren uses a "Write-Ahead" pattern where the temporary session is updated after every successful turn, preventing data loss during a power failure.
+
+### B. Configuration Merging
+On startup, the `config` module performs a three-way merge:
+1.  **Hard-coded Defaults**: The baseline "Viren Experience."
+2.  **Global Config**: Your settings in `config.json`.
+3.  **Ephemeral Flags**: Overrides provided via CLI (e.g., `-p groq`).
+
+---
+
+## 4. Concurrency Patterns & Memory Management
+
+### Goroutine Ownership
+- **Stream Listener**: A dedicated routine that watches the HTTP response body.
+- **Animation Timer**: A background ticker that updates the loading spinner at 10Hz.
+- **Signal Watcher**: A routine that blocks on the OS signal channel.
+
+### Memory Pooling
+To handle the **Codedump (`!d`)** of large projects, Viren uses a `sync.Pool` for `bytes.Buffer` objects. This significantly reduces the overhead of the Go garbage collector when processing thousands of files simultaneously.
+
+---
+
+## 5. Tokenization Engine Details
+
+Viren includes a native Go implementation of the **Tiktoken** algorithm (specifically the `cl100k_base` encoding).
+- **Offline Count**: You can run `viren -t file.go` to get a precise token count without any internet connection.
+- **Cost Estimation**: The Chat Manager uses this engine to calculate when the conversation history needs to be truncated to avoid "Context Overflow" errors from the AI providers.
+
+---
+
+## 6. Binary Stripping & Optimization
+
+The production Viren binary is optimized for minimal size:
+- **LDFLAGS**: We use `-s -w` to strip debug symbols and the DWARF table.
+- **Static Linking**: The binary is statically linked so it can run on systems without the Go runtime installed.
+
+---
+
+## 7. Directory Structure & Module Ownership
+
+- `cmd/viren/`: Entry point, CLI flags, interactive loop logic.
+- `internal/chat/`: Conversation state, bang-command parsing, file format extraction.
+- `internal/config/`: JSON i/o, default config generation, onboarding wizard UI.
+- `internal/platform/`: Provider-specific JSON mappers, SSE streaming clients.
+- `internal/ui/`: Custom ANSI rendering engine, fzf bridge, theme registry.
+- `internal/util/`: File system helpers, path cleaners, hashing functions.
+- `pkg/types/`: Global schema definitions used by all internal packages.
+
+---
+
+## 8. Detailed Use Cases for the Architect
+
+### Case 1: Legacy Code Migration
+Using `!d` on a monolithic repo allows the architect to ask: *"Identify all tightly coupled dependencies between module A and module B and suggest a decoupling strategy."*
+
+### Case 2: Security Audit
+By loading `schema.sql` and `api_handlers.go`, the architect can ask: *"Scan these files for potential SQL injection points or lack of input validation."*
+
+---
+
+## 9. Error Handling & Recovery
+
+Viren uses a multi-tiered error recovery system:
+1. **Network Retry**: Transient HTTP errors (503, 504) trigger an immediate exponential backoff retry.
+2. **Context Compression**: If a prompt is too large, the Chat Manager attempts to strip the oldest messages to fit the limit before failing.
+3. **Panic Catching**: Critical modules are wrapped in `recover()` blocks to ensure a single failed operation doesn't crash the entire interactive session.
+
+---
+
+## 10. The IPC Roadmap
+
+Our 2026-2027 roadmap includes:
+1.  **Shared Memory IPC**: A local socket bridge allowing external tools to read the active Viren context.
+2.  **Plugin Runtime**: Support for loading external `.wasm` files to extend Viren's command set.
+3.  **Local RAG Engine**: Integration of a vector database for hyper-scale codebase indexing.
+
+---
+
+## 11. Developer Environment Prerequisites
+
+To build Viren from source, you need:
+- **Go 1.21+**: The compiler.
+- **GCC/Clang**: If enabling OCR support via CGO.
+- **Make**: For running the automated build targets.
+- **Git**: For version tracking and repo management.
+
+---
+
+## 12. Conclusion
+
+**Viren is the intersection of high-performance systems engineering and cutting-edge artificial intelligence. It is built to be a permanent part of your technical infrastructure.**

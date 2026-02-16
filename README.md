@@ -1,7 +1,14 @@
 # VIREN: The Advanced Neural Command Interface
 
 <p align="center">
-  <img src="docs/logo.png" alt="Viren Logo" width="200" />
+<pre>
+██╗      ██╗   ██╗██╗██████╗ ███████╗███╗   ██╗
+╚██╗     ██║   ██║██║██╔══██╗██╔════╝████╗  ██║
+ ╚██╗    ██║   ██║██║██████╔╝█████╗  ██╔██╗ ██║
+ ██╔╝    ╚██╗ ██╔╝██║██╔══██╗██╔══╝  ██║╚██╗██║
+██╔╝      ╚████╔╝ ██║██║  ██║███████╗██║ ╚████║
+╚═╝        ╚═══╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝
+</pre>
 </p>
 
 <p align="center">
@@ -31,20 +38,28 @@ As the spiritual successor to the **Cha** project, Viren takes the interactive A
 3.  [Core Technical Features](#5-core-technical-features)
 4.  [The Neural Difference](#6-the-neural-difference)
 5.  [Installation Deep-Dive](#7-installation-deep-dive)
+    *   [Linux & macOS](#linux--macos)
+    *   [Windows Installation](#windows-installation)
+    *   [Android (Termux)](#android-termux)
 6.  [Quick Start Guide](#8-quick-start-guide)
 7.  [Interactive Command Reference](#9-interactive-command-reference)
 8.  [Advanced Context Ingestion](#10-advanced-context-ingestion)
-9.  [Configuration & Personalization](#11-configuration--personalization)
-10. [API Platform Integration](#12-api-platform-integration)
-11. [Local & Open Source Setup (Ollama)](#13-local--open-source-setup)
-12. [Performance Benchmarks](#14-performance-benchmarks)
-13. [Comparison: Viren vs. Others](#15-comparison-viren-vs-others)
-14. [Development & Building](#16-development--building)
-15. [Project Roadmap](#17-project-roadmap)
-16. [Privacy & Security Guarantee](#18-privacy--security-guarantee)
-17. [Contributing](#19-contributing)
-18. [Inspired By](#20-inspired-by)
-19. [License](#21-license)
+9.  [Logic & Behavior](#11-logic--behavior)
+    *   [AI Personalities](#ai-personalities)
+    *   [Domain Modes](#domain-modes)
+10. [Configuration & Personalization](#12-configuration--personalization)
+11. [API Platform Integration](#13-api-platform-integration)
+12. [Local & Open Source Setup (Ollama)](#14-local--open-source-setup)
+13. [Performance Benchmarks](#15-performance-benchmarks)
+14. [Comparison: Viren vs. Others](#16-comparison-viren-vs-others)
+15. [Development & Building](#17-development--building)
+16. [Project Roadmap](#18-project-roadmap)
+17. [Privacy & Security Guarantee](#19-privacy--security-guarantee)
+18. [Detailed Use Cases](#20-detailed-use-cases)
+19. [Troubleshooting Strategy](#21-troubleshooting-strategy)
+20. [Contributing](#22-contributing)
+21. [Inspired By](#23-inspired-by)
+22. [License](#24-license)
 
 ---
 
@@ -69,10 +84,10 @@ Web UIs are optimized for engagement and mouse clicks. Viren is optimized for **
 ## 5. Core Technical Features
 
 *   **Asynchronous Engine**: Viren uses background goroutines to handle animations, API requests, and terminal rendering simultaneously.
-*   **Intelligent Tokenization**: Built-in estimation tools allow you to check the "weight" of a file before sending it to the AI, helping you manage costs and context limits.
-*   **ANSI UI Framework**: A custom-built rendering engine that provides high-fidelity borders, boxes, and syntax highlighting without requiring a GPU-accelerated terminal.
-*   **Session Persistence**: Every conversation is serialized to a local JSON database, allowing for instant "checkpointing" and resumption of complex tasks.
-*   **Dynamic Logic Injection**: Viren modifies the "System Prompt" in real-time based on your "Domain Mode" selection, ensuring the AI behaves exactly like the expert you need (e.g., a Database Admin or a Frontend Guru).
+*   **Intelligent Tokenization**: Built-in estimation tools allow you to check the "weight" of a file before sending it to the AI.
+*   **ANSI UI Framework**: A custom-built rendering engine that provides high-fidelity borders, boxes, and syntax highlighting.
+*   **Session Persistence**: Every conversation is serialized to a local JSON database.
+*   **Dynamic Logic Injection**: Viren modifies the "System Prompt" in real-time based on your selection.
 
 ---
 
@@ -84,208 +99,201 @@ What separates Viren from a simple "Chat-with-API" script?
 Viren "sees" your environment. When you use the **Shell Record (`!x`)** feature, Viren opens a sub-process, watches your terminal output, and captures errors that normally would require manual copy-pasting.
 
 ### Zero Cloud Dependency
-Viren does not have a backend. There is no `api.viren.sh`. Your requests go directly from your local binary to the AI provider. This architectural choice ensures that your proprietary code never passes through a third-party's logging server.
+Viren does not have a backend. Your requests go directly from your local binary to the AI provider.
 
 ---
 
 ## 7. Installation Deep-Dive
 
-### The Automated Installer
-The recommended way to install Viren is via our production-ready shell script. It is designed to be idempotent and safe.
+### Linux & macOS
+The recommended way to install Viren is via our production-ready shell script.
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/fraol163/viren/main/install.sh | bash
 ```
 
-### What happens during installation?
-1.  **OS/Arch Detection**: The script identifies if you are on x86_64, ARM64 (M1/M2 Macs), or Android (Termux).
-2.  **Dependency Audit**: It checks for `go` (>=1.21) and `fzf`.
-3.  **Automatic Recovery**: If `fzf` is missing, the script attempts to install it via `apt`, `brew`, or `dnf` automatically.
-4.  **Temp Workspace**: To keep your filesystem clean, the script clones Viren into `/tmp/viren-build-randomID/`.
-5.  **CGO Tuning**: It automatically disables CGO for Termux builds to prevent common linker errors while enabling it for macOS/Linux to support optional OCR features.
-6.  **Binary Stripping**: The resulting binary is optimized for size and performance before being moved to `/usr/local/bin`.
+### Windows Installation
+Viren is fully supported on Windows. For the best experience, use **Windows Terminal** with **PowerShell**.
+
+#### Method 1: Pre-built Binary
+1. Download the latest `viren-windows-amd64.exe` from the [Releases](https://github.com/fraol163/viren/releases) page.
+2. Rename it to `viren.exe`.
+3. Add the directory containing `viren.exe` to your system's `PATH`.
+
+#### Method 2: Build from Source (PowerShell)
+1. Install [Go](https://go.dev/dl/).
+2. Install [Git](https://git-scm.com/downloads).
+3. Install [fzf](https://github.com/junegunn/fzf#windows) (via `choco install fzf` or `scoop install fzf`).
+4. Run:
+```powershell
+git clone https://github.com/fraol163/viren.git
+cd viren
+go build -o viren.exe cmd/viren/main.go
+```
+
+#### Method 3: WSL2
+You can use the Linux installation method inside WSL2 (Ubuntu/Debian).
+
+### Android (Termux)
+1. Install Termux.
+2. Run the Linux installation script. Viren detects Termux and disables CGO for maximum compatibility.
 
 ---
 
 ## 8. Quick Start Guide
 
-1.  **Install**: Run the curl command above.
-2.  **Configure**: Set your API key: `export OPENAI_API_KEY="your-key"`.
+1.  **Install**: Run the installation steps above.
+2.  **Configure**: Set your API key: `export OPENAI_API_KEY="your-key"` (PowerShell: `$env:OPENAI_API_KEY="your-key"`).
 3.  **Launch**: Type `viren`.
-4.  **Onboard**: Enter your name and role (Backend, Frontend, etc.).
-5.  **Chat**: Type "How do I optimize a Go map lookup?"
-6.  **Export**: Type `!e` to save the code the AI gives you.
+4.  **Onboard**: Enter your name and role.
+5.  **Chat**: Type your first query.
 
 ---
 
 ## 9. Interactive Command Reference
 
-Inside the `viren` shell, use these "Bang Commands" for total control:
+Inside the `viren` shell, use these "Bang Commands":
 
 | Command | Category | Functional Capability |
 | :--- | :--- | :--- |
 | `!q` | Session | **Quit**: Safely exits and saves your history. |
 | `!h` | UI | **Help**: Opens the interactive dashboard. |
-| `!c` | Context | **Clear**: Wipes the screen and the context window. |
-| `!m` | Logic | **Model**: Switch between GPT-4, Claude, DeepSeek, etc. |
-| `!p` | Logic | **Platform**: Switch between OpenAI, Groq, Ollama, etc. |
+| `!c` | Context | **Clear**: Wipes the screen and context. |
+| `!m` | Logic | **Model**: Switch between LLMs. |
+| `!p` | Logic | **Platform**: Switch between providers. |
 | `!u` | Tone | **Personality**: Switch between 7 AI personas. |
-| `!v` | Logic | **Mode**: Apply one of 40+ specialized domain prompts. |
-| `!z` | UI | **Theme**: Instantly change colors (Neon, Paper, Matrix). |
-| `!x` | Ingestion | **Shell Record**: Capture your terminal output for the AI. |
-| `!d` | Ingestion | **Codedump**: Bundle your whole project for review. |
-| `!l` | Ingestion | **Load**: Inject specific files (Go, Py, PDF, Images). |
+| `!v` | Logic | **Mode**: Apply specialized domain prompts. |
+| `!z` | UI | **Theme**: Instantly change colors. |
+| `!x` | Ingestion | **Shell Record**: Capture terminal output. |
+| `!d` | Ingestion | **Codedump**: Bundle project for review. |
+| `!l` | Ingestion | **Load**: Inject specific files (Go, Py, PDF, etc.). |
 | `!s` | Ingestion | **Scrape**: Feed a website URL to the AI. |
-| `!w` | Ingestion | **Web Search**: Live search via Brave Search API. |
-| `!a` | Session | **History**: Browse and restore past conversations. |
-| `!y` | Utility | **Clipboard**: Copy responses to your system clipboard. |
-| `!b` | Logic | **Backtrack**: Revert the last 1 or more messages. |
+| `!w` | Ingestion | **Web Search**: Live search via Brave. |
+| `!a` | Session | **History**: Browse/restore conversations. |
 
 ---
 
 ## 10. Advanced Context Ingestion
 
-### The Codedump Protocol (`!d`)
-Viren is designed for "Repository-Level Intelligence." When you run `!d`, Viren:
-1.  Loads your `.gitignore` to avoid binary files and `node_modules`.
-2.  Presents an `fzf` menu allowing you to exclude specific files manually.
-3.  Minifies and bundles the remaining source code into a structured context package.
-4.  Allows you to ask questions like: *"Where is the race condition in my websocket handler?"* or *"Summarize the architecture of this entire project."*
-
-### Multi-File Reasoning
-You can use `!l` to load multiple files at once. Viren will tag each file clearly in the prompt, allowing the AI to understand the relationship between your `main.go` and your `types.go`, for example.
+### Codedump Protocol (`!d`)
+Automatically bundles your source code while respecting `.gitignore`. Perfect for architectural reviews or finding project-wide bugs.
 
 ---
 
-## 11. Configuration & Personalization
+## 11. Logic & Behavior
 
-### The Neural Profile
-Viren uses a `user_profile` section in `config.json` to tailor its responses.
-*   **Role-Based Tuning**: If you are a "System Architect," the AI will prioritize scalability and patterns. If you are a "Junior Developer," it will focus on explaining syntax and logic.
-*   **Env-Awareness**: List your editor (Vim, VS Code) so the AI provides relevant keyboard shortcuts and plugin suggestions.
+Viren allows you to precisely tune how the AI thinks and speaks through Personalities and Domain Modes.
 
-### Config File Location
+### AI Personalities
+Switch using `!u`. Each personality alters the tone, verbosity, and style of the AI.
+- **Analytical**: Logical, systematic, and data-driven.
+- **Creative**: Artistic, imaginative, and metaphor-heavy.
+- **Focused**: Goal-oriented, concise, and productivity-focused.
+- **Empathetic**: Emotionally intelligent and supportive.
+- **Playful**: Fun, energetic, and full of wit.
+- **Balanced**: Versatile and adaptive (Default).
+- **Rick Sanchez**: Cynical, sarcastic, and unhinged (Rick and Morty style).
+
+### Domain Modes
+Switch using `!v`. Each mode applies a heavy system mandate for specific technical tasks.
+- **Standard**: Professional balanced tone.
+- **Zenith**: Advanced reasoning with cosmic metaphors.
+- **Code Whisperer**: Expert refactoring and idiomatic patterns.
+- **Socratic**: Never gives direct answers; leads you through questions.
+- **Complexity Analyzer**: Calculates Big-O time and space complexity.
+- **DSA Mode**: Data Structures & Algorithms specialist.
+- **CyberSec**: Security audit and penetration testing focus.
+- **... and 30+ more** (Physics, Chemistry, Finance, Marketing, etc.)
+
+---
+
+## 12. Configuration & Personalization
+
 Settings are stored in `~/.viren/config.json`.
-- **`shallow_load_dirs`**: List paths (like `/`, `/home`) that Viren should never scan recursively. This protects you from accidental context overflows.
-- **`exit_key`**: Customize how you quit the app.
+*   **`user_profile`**: Your name, role, and professional ambition.
+*   **`shallow_load_dirs`**: Folders Viren will not scan recursively.
+*   **`current_theme`**: Set your preferred default look.
 
 ---
 
-## 12. API Platform Integration
+## 13. API Platform Integration
 
-Viren supports every major AI platform on the market. Below are the official links to obtain keys:
-
-| Provider | Purpose | Link |
-| :--- | :--- | :--- |
-| **OpenAI** | General Purpose | [openai.com/api/](https://openai.com/api/) |
-| **Brave Search** | Live Internet | [brave.com/search/api/](https://brave.com/search/api/) |
-| **OpenRouter** | Aggregator | [openrouter.ai](https://openrouter.ai/settings/keys) |
-| **Google Gemini**| Multimodal | [ai.google.dev](https://ai.google.dev/gemini-api/docs/api-key) |
-| **Anthropic** | Reasoning | [console.anthropic.com](https://console.anthropic.com/) |
-| **DeepSeek** | Coding Efficiency| [deepseek.com](https://api-docs.deepseek.com/) |
-| **Groq** | Inference Speed | [console.groq.com](https://console.groq.com/keys) |
-| **xAI** | Real-time Info | [console.x.ai](https://x.ai/api) |
-| **Mistral** | Efficiency | [console.mistral.ai](https://docs.mistral.ai/getting-started/quickstart) |
-| **Together AI** | Open Source | [together.ai](https://docs.together.ai/docs/quickstart) |
-| **AWS Bedrock** | Enterprise | [aws.amazon.com/bedrock](https://aws.amazon.com/bedrock) |
+Viren supports OpenAI, Brave, OpenRouter, Gemini, Anthropic, DeepSeek, Groq, xAI, Mistral, Together AI, and AWS Bedrock. See [docs/api_keys.md](./docs/api_keys.md) for full setup details.
 
 ---
 
-## 13. Local & Open Source Setup
+## 14. Local & Open Source Setup
 
-For users who cannot send code to the cloud due to security constraints, Viren fully supports **Ollama**.
-
-1.  **Download Ollama**: Visit [ollama.com](https://ollama.com).
-2.  **Pull a Model**: `ollama run deepseek-coder:6.7b`.
-3.  **Connect Viren**: Launch Viren and type `!p ollama`.
-4.  **Offline Privacy**: All reasoning now happens 100% on your machine. No data leaves your local network.
+Viren is a bridge to local LLMs via **Ollama**.
+1. Install Ollama.
+2. In Viren, type `!p ollama`.
+3. Reasoning happens entirely on your local hardware.
 
 ---
 
-## 14. Performance Benchmarks
+## 15. Performance Benchmarks
 
-Viren is built for speed. Here is how it compares to standard tools:
-
-| Action | Viren (Go) | Python-Based CLIs | Web-Based AI |
-| :--- | :--- | :--- | :--- |
-| **Startup Time** | < 100ms | 1.2s - 2.5s | 3s - 8s (Browser) |
-| **Codedump Scan**| 400ms (1k files)| 3.5s | Manual Upload |
-| **Memory Usage** | ~15MB | 120MB+ | 800MB+ (Chrome) |
-| **Syntax Highlighting**| Real-time | Delayed | Real-time |
+Viren starts in under 100ms and can scan 1,000 code files in under 400ms.
 
 ---
 
-## 15. Comparison: Viren vs. Others
+## 16. Comparison: Viren vs. Others
 
-### Viren vs. ChatGPT/Claude Web
-- **Web**: Manual copy-pasting, distracting UI, no file system access.
-- **Viren**: Direct file ingestion, shell recording, keyboard-driven.
-
-### Viren vs. Other CLI Tools
-- **Others**: Often complex setup, Python dependencies, slow startup.
-- **Viren**: Single static binary, ultra-fast, built-in fuzzy finder (`fzf`).
+Viren is faster than Python-based tools and more context-aware than standard web interfaces.
 
 ---
 
-## 16. Development & Building
+## 17. Development & Building
 
 ### Prerequisites
-- **Go**: 1.21 or higher.
-- **FZF**: Required for the interactive UI.
-- **Make**: For standard build tasks.
+- **Go**: 1.21+
+- **FZF**: Required for menus.
 
-### Build Instructions
 ```bash
-git clone https://github.com/fraol163/viren.git
-cd viren
 make build
 ```
-The binary will be generated in `./bin/viren`.
-
-### Running Tests
-```bash
-make test
-```
 
 ---
 
-## 17. Project Roadmap
+## 18. Project Roadmap
 
-*   **Phase 1**: (Completed) Core speed optimization, 11-provider support, Codedump.
-*   **Phase 2**: (In Progress) Direct `.gguf` support (Llama.cpp integration), Multimodal image ingestion.
-*   **Phase 3**: (Planning) Autonomous Agent Mode, local RAG (Vector Database), VS Code/Vim plugins.
+Phase 2 will include Llama.cpp integration and multimodal (image) ingestion.
 
 ---
 
-## 18. Privacy & Security Guarantee
+## 19. Privacy & Security Guarantee
 
-Viren is a **Data-Transparent** application.
-*   **Encryption**: We recommend environment variables so keys are never written to disk in plain text.
-*   **No Logs**: Viren does not log your prompts to our servers because we do not have servers.
-*   **Source Integrity**: The project is open-source. You can verify every line of networking code in `internal/platform/`.
+Viren is data-transparent. We do not have servers. Your data stays on your disk.
 
 ---
 
-## 19. Contributing
+## 20. Detailed Use Cases
 
-We are actively seeking contributions for:
-- New **Domain Modes** (System Prompts for specific niches).
-- Improved **Documentation** and examples.
-- Better **Windows Support** optimization.
-
-Please see [CONTRIBUTING.md](./docs/contributing.md) for details.
+Use Viren for project auditing, bug hunting, fact-checking via web search, and automated code generation.
 
 ---
 
-## 20. Inspired By
+## 21. Troubleshooting Strategy
 
-Viren is the spiritual successor to the **Cha** project, originally created by [Mehmetmhy](https://github.com/mehmetmhy). Viren was inspired by the elegance of Cha's interactive design but was rebuilt from scratch to meet the performance and stability needs of modern software engineering. We thank the original Cha creator for pioneering this workflow.
+Ensure your API keys are exported and `fzf` is in your system path.
 
 ---
 
-## 21. License
+## 22. Contributing
 
-Viren is released under the **MIT License**. You are free to use, modify, and distribute it. See [LICENSE](./LICENSE) for details.
+We welcome pull requests for new domain modes and platform adapters. See [CONTRIBUTING.md](./docs/contributing.md).
+
+---
+
+## 23. Inspired By
+
+Viren is the spiritual successor to the **Cha** project, originally created by [Mehmetmhy](https://github.com/mehmetmhy). Viren takes the interactive experience to a professional engineering standard.
+
+---
+
+## 24. License
+
+Viren is released under the **MIT License**.
 
 ---
 

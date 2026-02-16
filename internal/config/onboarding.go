@@ -19,7 +19,7 @@ func RunOnboarding(terminal *ui.Terminal, cfg *types.Config) error {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print(" \033[1;30;44m IDENTITY \033[0m What should I call you? ❯ ")
+	fmt.Print(" \033[1;37;40m IDENTITY \033[0m What should I call you? ❯ ")
 	name, _ := reader.ReadString('\n')
 	cfg.UserProfile.Name = strings.TrimSpace(name)
 
@@ -36,7 +36,7 @@ func RunOnboarding(terminal *ui.Terminal, cfg *types.Config) error {
 		role = "Developer"
 	}
 	cfg.UserProfile.Role = role
-	fmt.Printf(" \033[1;30;44m ROLE \033[0m %s\n", role)
+	fmt.Printf(" \033[1;37;40m ROLE \033[0m %s\n", role)
 
 	editors := []string{"VS Code", "Vim", "Neovim", "Zed", "IntelliJ", "Sublime Text", "Emacs", "Nano"}
 	editor, err := terminal.FzfSelect(editors, "Preferred Editor: ")
@@ -47,9 +47,9 @@ func RunOnboarding(terminal *ui.Terminal, cfg *types.Config) error {
 		editor = "VS Code"
 	}
 	cfg.UserProfile.Environment = editor
-	fmt.Printf(" \033[1;30;44m ENV \033[0m %s\n", editor)
+	fmt.Printf(" \033[1;37;40m ENV \033[0m %s\n", editor)
 
-	fmt.Print(" \033[1;30;44m AMBITION \033[0m What is your primary goal? ❯ ")
+	fmt.Print(" \033[1;37;40m AMBITION \033[0m What is your primary goal? ❯ ")
 	ambition, _ := reader.ReadString('\n')
 	cfg.UserProfile.Ambition = strings.TrimSpace(ambition)
 

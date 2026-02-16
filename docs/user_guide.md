@@ -1,98 +1,172 @@
-# Master User Guide: Becoming a Viren Power User
+# The Master Viren User Guide: From Apprentice to Neural Architect
 
-Welcome to Viren. This guide is designed to take you from a basic user to a master of terminal-based AI automation. Viren is not just a chat tool; it is a context-injection engine that allows you to treat LLMs as a first-class citizen of your operating system.
-
----
-
-## 1. Documentation Philosophy
-**Why is Viren documentation structured this way?**
-We follow the **High-Density Information** principle. Developers don't want fluff; they want facts and syntax. Our documentation is designed to be browsed via `grep` or read quickly during a build cycle. Every file in the `docs/` folder is a modular component of the Viren ecosystem.
+Welcome to the definitive guide for **Viren**. This document is designed to take you from a basic user to a master of terminal-based AI automation. Viren is not just a chat tool; it is a context-injection engine that allows you to treat Large Language Models (LLMs) as first-class citizens of your Command Line Interface (CLI).
 
 ---
 
-## 2. Core Workflow: The First 5 Minutes
+## 1. The Viren Philosophy: Documentation Logic
 
-### Initial Setup
-1.  **Install**: `curl -sSL ... | bash`
-2.  **Keys**: Export your `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`.
-3.  **First Run**: Type `viren`.
-4.  **Onboarding**: Fill in your profile. Be specific about your role (e.g., "Embedded Systems Engineer") as this directly changes how the AI explains complex concepts.
-
-### Your First Session
-Try asking: *"What is the best way to handle concurrency in this environment?"*
-Then, try switching the logic:
-1.  Type `!v`.
-2.  Select `Socratic Mode`.
-3.  Ask the same question. Notice how the AI no longer gives you the answer but asks you questions to help you figure it out.
+**Why is this guide so detailed?**
+Viren is a tool for developers. Developers value precision, depth, and edge-case coverage. While the interface is designed to be intuitive, its advanced capabilities—like native OCR parsing and sub-shell recording—require a deeper explanation to extract their full value. This guide provides the high-density information needed to build a "Neural Workflow" that saves hours of manual labor every week.
 
 ---
 
-## 3. Master Command Table
+## 2. Initial Setup & Onboarding Mechanics
 
-| Command | Usage | Pro-Tip |
-| :--- | :--- | :--- |
-| `!q` | Exit | Use this to ensure your session is saved to history. |
-| `!h` | Help | Use the search bar in the fzf menu to find commands instantly. |
-| `!c` | Clear | Run this when you're switching from "Debugging" to "Creative Writing." |
-| `!m` | Model | Check for newer models (like `o1-preview`) regularly. |
-| `!p` | Platform | Use `!p groq` for instant replies, `!p anthropic` for deep logic. |
-| `!u` | Personality | Try `Rick Sanchez` mode for a humorous, sarcastic coding session. |
-| `!v` | Domain Mode | Use `Code Whisperer` for purely idiomatic refactors. |
-| `!z` | Theme | Use `Paper` for bright environments, `DeepSpace` for OLED screens. |
-| `!x` | Shell Record | Perfect for fixing failing `Makefile` or `docker-compose` errors. |
-| `!d` | Codedump | Always exclude `node_modules` and `.git` to save tokens. |
-| `!l` | Load | You can load PDFs! Try loading a datasheet or a technical spec. |
-| `!s` | Scrape | Extract clean text from any URL without the ads and banners. |
-| `!w` | Web Search | Use this to verify facts that occurred in the last 24 hours. |
-| `!a` | History | You can restore a session from 3 weeks ago in 2 seconds. |
-| `!y` | Clipboard | Use "Turn Copy" to share a full conversation with a teammate. |
+### The First Launch Sequence
+When you execute `viren` for the first time, the binary detects the absence of a `~/.viren/` directory and initiates the **Neural Profile Initialization**.
+
+1.  **Identity Mapping**: The AI will ask for your name. This is used to customize the greeting and provide a sense of persistent partnership.
+2.  **Role Classification**: This is the most critical step. If you identify as a "Senior Rust Engineer," the AI will skip basic syntax explanations and focus on ownership, lifetimes, and zero-cost abstractions. If you identify as a "Product Manager," it will focus on strategy and communication.
+3.  **Environmental Context**: Listing your primary OS (e.g., "Fedora") and editor ("Neovim") allows the AI to provide copy-pasteable commands that work specifically for your system.
 
 ---
 
-## 4. Context Injection Mastery
+## 3. The Interactive Command Layer (Bang Commands)
+
+Inside the Viren shell, you can communicate in natural language. However, to control the application's internal state machine, you must use **Bang Commands** (`!`).
+
+### A. Session & History Management
+- **`!q` (Safe Quit)**: Exits the loop and ensures the current `Messages` slice is saved to the JSON history.
+- **`!a` (History Manager)**: Opens a searchable `fzf` menu of every session you have ever had.
+- **`!c` (Context Purge)**: Clears the current session's memory and wipes the terminal screen.
+
+### B. Logical & Platform Multiplexing
+- **`!m` (Model Switcher)**: Fetches the live model list from your current provider.
+- **`!p` (Platform Switcher)**: Change your entire infrastructure backend. Switch from cloud (Anthropic) to local (Ollama) in under 3 seconds.
+- **`!o` (Global Selector)**: A master list of every model from every platform you have an API key for.
+
+### C. Behavioral Tuning
+- **`!u` (Personality Matrix)**: Viren comes with 7 pre-tuned personas.
+    - *Analytical*: Focuses on data structures and logic proofs.
+    - *Playful*: Injects humor and wit into technical explanations.
+    - *Rick Sanchez*: A cynical, brilliant, and sarcastic persona.
+- **`!v` (Domain Mode)**: This changes the core "System Mandate." 
+    - *Code Whisperer*: Transforms Viren into a pair-programmer.
+    - *Socratic*: Transforms Viren into a teacher.
+
+---
+
+## 4. Masterclass: Advanced Context Ingestion
 
 ### The "Load" Protocol (`!l`)
-The `!l` command is the heart of Viren's productivity.
-- **Multiple Files**: Press `Tab` in the fzf menu to select 5-10 files. Viren will ingest them all.
-- **OCR Support**: If you load a `.jpg` or `.png`, and have `tesseract` installed, Viren will extract the text from the image. This is great for screenshots of error messages or whiteboard diagrams.
-- **PDF Parsing**: Viren includes a native PDF text extractor. Load a manual, and the AI becomes an expert on that documentation.
+The `!l` command is for precision context injection.
+- **Multiple Selection**: Use `Tab` in the fzf menu to pick multiple files.
+- **Rich Format Parsing**:
+    - **PDFs**: Viren uses a native parser to extract text.
+    - **Excel/CSV**: It converts row/column data into structured Markdown.
+    - **Images (OCR)**: Perfect for screenshots of failing logs.
 
-### The Codedump (`!d`)
-Don't copy-paste your code. Use `!d` to give the AI a "God's Eye View" of your project.
-- **Respecting .gitignore**: Viren is smart. It won't load your `.env` files or secret keys if they are ignored in git.
-- **Exclusion**: Use the interactive menu to prune your context. The smaller the context, the faster and more accurate the AI.
+### The Codedump Protocol (`!d`)
+For project-wide architectural analysis.
+1.  **Automatic Ignoring**: Viren reads your `.gitignore`.
+2.  **Manual Pruning**: An `fzf` menu appears, letting you exclude specific files.
+3.  **Bundling**: Viren creates a single, high-density XML-style context package.
 
 ---
 
-## 5. Advanced Features: The Developer's Edge
+## 5. Pro-Developer Workflows: The Action Engine
 
-### Shell Recording (`!x`)
-This is Viren's most powerful feature for systems work.
+### The Diagnostic Loop (`!x`)
+This is the "Killer Feature" for systems engineers.
 1.  Launch `!x`.
-2.  Run `npm install`. If it crashes with a massive stack trace, don't scroll up to copy it.
+2.  Perform your failing workflow.
 3.  Type `exit`.
-4.  Viren hands the *entire* log to the AI and asks for a fix.
-5.  The AI analyzes the environment and the error simultaneously.
+4.  Viren captures the output and asks the AI for a fix.
 
-### Smart Export (`!e`)
-Viren's export engine is context-aware.
-- It detects the language of the code block.
-- It suggests a name (e.g., `main.go` or `style.css`).
-- It checks if the file exists and prompts for an overwrite or a new name.
-
----
-
-## 6. Offline & Local AI (Ollama)
-Viren is a bridge to the future of local AI.
-- **Privacy**: If you are working on sensitive government or corporate code, use `!p ollama`.
-- **Performance**: Local models have zero network latency.
-- **Requirement**: You must have the [Ollama](https://ollama.com) service running in the background.
+### The Export Pipeline (`!e`)
+Viren is a **Producer**, not just a **Chatter**.
+1.  Once the AI generates a code block, type `!e`.
+2.  Viren's "Smart Guess" engine looks at the code and suggests a name.
+3.  Hit `Enter` to save the file to your disk.
 
 ---
 
-## 7. Troubleshooting Common Workflows
-- **AI is Hallucinating?**: Switch to `Zenith Mode` (`!v`) to force better reasoning.
-- **Response is too long?**: Switch to `Focused` personality (`!u`).
-- **Context limit reached?**: Use `!c` to clear the history and start fresh with only the essential files loaded.
+## 6. High-Density Prompt Engineering within Viren
 
-**Viren is your new technical partner. Use it wisely.**
+To get the most out of Viren, you must understand how it builds prompts. Viren uses a "Layered Context" strategy:
+
+1.  **Layer 1: The Domain Mandate**: (Set via `!v`) Defines the AI's core logic.
+2.  **Layer 2: The Neural Profile**: (Set in config) Defines your expertise level.
+3.  **Layer 3: The Active Context**: (Files loaded via `!l` or `!d`) Provides the data.
+4.  **Layer 4: The Immediate Query**: Your specific question.
+
+---
+
+## 7. Performance Optimization Workflows
+
+### Managing the Context Window
+Every AI model has a limit.
+- **Symptom**: The AI starts "hallucinating" or forgetting.
+- **Solution**: Use `!c` to purge and re-load.
+
+---
+
+## 8. Detailed Mode Descriptions
+
+### `!v zenith`
+**Purpose**: Advanced Logical Reasoning.
+**Logic**: Injects instructions forcing the model to use Chain-of-Thought (CoT) and avoid jumping to conclusions.
+
+### `!v codewhisperer`
+**Purpose**: Idiomatic Refactoring.
+**Logic**: Strips all conversational filler. The model will only provide code blocks and high-level comments.
+
+### `!v timeanalyzer`
+**Purpose**: Performance Bottleneck Detection.
+**Logic**: Forces the model to calculate Big-O complexity for every function it sees.
+
+---
+
+## 9. Keyboard Shortcuts for Maximum Throughput
+
+- **`Ctrl+C`**: Cancels an active AI stream.
+- **`Ctrl+D`**: Safely quits.
+- **`Up Arrow`**: Cycles through your *previous prompts*.
+- **`\`**: Triggers multi-line input mode.
+
+---
+
+## 10. Frequently Asked Questions (FAQ)
+
+**Q: Can I use Viren with local models?**
+A: Yes. Use `!p ollama`.
+
+**Q: Does Viren support Windows?**
+A: Yes. We recommend using **Windows Terminal**.
+
+**Q: Where is my history saved?**
+A: Everything is stored in `~/.viren/tmp/`.
+
+---
+
+## 11. Security Best Practices
+
+1.  **Environment Variables**: Never put your API keys in a text file.
+2.  **Codedump Caution**: Always review the file list in `!d`.
+3.  **VPN**: When using `!w` (Web Search), use a VPN.
+
+---
+
+## 12. Troubleshooting Common Scenarios
+
+### Scenario: Viren is not seeing my API keys
+- **Fix**: Ensure you have `export`ed them in your shell profile and ran `source ~/.zshrc`.
+
+### Scenario: The ASCII art looks broken
+- **Fix**: Check your terminal font. Use a "Nerd Font" for the best compatibility with symbols and boxes.
+
+---
+
+## 13. Mastering Single-Shot Mode
+
+Viren isn't just for chatting. It can be used as a high-speed utility in your build scripts.
+`viren -l config.yaml "Convert this to JSON format" > config.json`
+
+---
+
+## 14. Conclusion: The Neural Advantage
+
+Viren is more than a CLI; it is a force-multiplier for your technical ability. By mastering the commands in this guide, you are becoming an engineer who is contextually aware, high-speed, and ready for the era of AI-integrated development.
+
+**Master the interface. Master the machine. Viren is your new technical partner.**

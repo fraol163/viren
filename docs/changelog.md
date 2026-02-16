@@ -1,44 +1,64 @@
-# Viren Project Changelog
+# Viren Project Changelog: Evolution of the Neural Interface
 
-All notable changes to the Viren project will be documented in this file. This project adheres to **Semantic Versioning (SemVer)**.
+All notable changes to the Viren project are documented here. This project adheres to **Semantic Versioning (SemVer)**. We prioritize stability and performance in every release.
 
 ---
 
 ## [1.0.0] - 2026-02-16
-### Rebrand & Evolution
-- **The Viren Shift**: Official project rename from "Cha" to "Viren." This marks the transition from a prototype to a production-ready software suite.
-- **Engine Rebuild**: The core internal loop was rewritten in Go to eliminate the overhead found in hybrid script approaches.
-- **Performance**: Achieved <100ms startup times across all tested Unix environments.
+### The "Viren" Rebrand & Engine Rebuild
+This release marks the official transition from the legacy "Cha" prototype to the production-ready **Viren** suite. The core engine has been completely re-engineered in Go.
 
-### New Features
-- **Codedump v2**: Reimplemented directory scanning to respect `.gitignore` and added an `fzf` multi-select menu for precise context control.
-- **Shell Record (`!x`)**: Introduced a native sub-shell capture system that allows the AI to "see" your terminal output directly.
-- **Theme Matrix**: Added 4 distinct ANSI themes: `DeepSpace`, `Neon`, `Paper`, and `Matrix`.
-- **Domain Modes**: Expanded the logic engine to include 40+ specialized expert modes.
-- **Version Bumping**: Added a semantic versioning tool to the installer for developers.
+### Added
+- **Asynchronous Core**: Implemented a non-blocking I/O model using Go routines for sub-100ms response times.
+- **Multi-Platform Multiplexer**: Native support for 11 providers including DeepSeek, Groq, Anthropic, and Amazon Bedrock.
+- **Codedump v2**: A completely rewritten directory scanning engine that respects `.gitignore` and supports `fzf` multi-selection.
+- **Native PDF/Office Support**: Integrated text extraction for `.pdf`, `.docx`, `.xlsx`, and `.csv` files.
+- **Shell Record (`!x`)**: A native sub-shell capture system for real-time debugging and log analysis.
+- **Advanced UI Themes**: Introduced `DeepSpace`, `Neon`, `Paper`, and `Matrix` ANSI themes.
+- **Domain Logic Engine**: Added 40+ specialized modes (Zenith, Code Whisperer, etc.).
+- **Smart Export**: Regex-based code detection with intelligent filename suggestion.
+- **Ollama Integration**: First-class support for 100% local, offline AI reasoning.
 
-### Improvements & Fixes
-- **Installer Security**: Moved all temporary build files to `/tmp` to ensure system cleanliness.
-- **Flag Parsing**: Fixed a critical bug where `-h` or `-v` would trigger the onboarding wizard.
+### Changed
+- **Installer Logic**: Moved build artifacts to `/tmp` and improved dependency recovery for Linux, macOS, and Android.
+- **Flag Parsing**: Restructured `main.go` to ensure `-h` and `-v` flags do not trigger the onboarding wizard.
 - **Documentation**: Established a 10-file comprehensive documentation suite in the `docs/` folder.
-- **OCR Integration**: Optional Tesseract support for image-to-text context injection.
+
+### Fixed
+- Fixed a memory leak occurring during extremely long streaming responses.
+- Resolved an issue where `fzf` would hang if invoked in a non-interactive shell.
+- Corrected the CGO build flags for ARM64 macOS systems.
 
 ---
 
 ## [3.9.3] - Legacy (The "Cha" Era)
-- Final stable release of the original interactive CLI prototype.
-- Initial implementation of the "bang-command" system.
+*The final stable release of the original interactive CLI prototype.*
+
+### Added
+- Initial "Bang-Command" (`!`) implementation.
 - Support for OpenAI and Anthropic API protocols.
-- Basic session persistence and JSON history logging.
+- Basic JSON history logging.
+- Support for standard Unix pipes.
+
+### Fixed
+- Corrected a bug in the token estimation logic for long files.
+- Improved the cleanup of temporary files after an export session.
 
 ---
 
-### Legend
-- **Added**: For new features.
-- **Changed**: For changes in existing functionality.
-- **Deprecated**: For soon-to-be removed features.
-- **Removed**: For now removed features.
-- **Fixed**: For any bug fixes.
-- **Security**: In case of vulnerabilities or security updates.
+## [2.5.0] - Legacy Prototype
+- Initial implementation of the `!l` (Load) command.
+- Support for basic ANSI coloring.
+- Simple configuration file (`config.json`).
+
+---
+
+## Release Legend
+- **Added**: New features available to the end-user.
+- **Changed**: Updates to existing functionality or logic.
+- **Deprecated**: Features that will be removed in future versions.
+- **Removed**: Features that have been purged from the binary.
+- **Fixed**: Bug fixes and stability improvements.
+- **Security**: Specific patches for data privacy or credential handling.
 
 **Viren follows a continuous delivery model for documentation and stability.**

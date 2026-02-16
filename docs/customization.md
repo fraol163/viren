@@ -1,13 +1,14 @@
-# Deep Customization & Logic Tuning
+# Comprehensive Configuration & Logic Tuning
 
-Viren is designed to be a transparent extension of your technical personality. This document explains how to manipulate the internal configuration engine to fit your specific hardware, OS, and professional requirements.
+Viren is designed to be a transparent extension of your technical personality. Its sophisticated configuration engine allows you to manipulate every aspect of the application, from the core behavioral logic of the AI to the visual aesthetic of the terminal interface.
 
 ---
 
-## 1. The Core Config: `config.json`
+## 1. The Configuration File: `config.json`
+
 Viren stores its persistent state in `~/.viren/config.json`. 
 
-### Full Schema Definition
+### Full Schema Reference
 ```json
 {
   "default_model": "gpt-4o",
@@ -22,84 +23,83 @@ Viren stores its persistent state in `~/.viren/config.json`.
   "web_search": "!w",
   "show_search_results": true,
   "num_search_results": 5,
-  "scrape_url": "!s",
-  "copy_to_clipboard": "!y",
-  "load_files": "!l",
-  "platform_switch": "!p",
-  "all_models": "!o",
-  "code_dump": "!d",
-  "shell_record": "!x",
-  "multi_line": "\\",
-  "preferred_editor": "vim",
-  "current_theme": "deepspace",
-  "current_mode": "standard",
-  "current_personality": "balanced",
-  "mute_notifications": false,
-  "enable_session_save": true,
   "shallow_load_dirs": [
     "/",
     "/home/",
     "/usr/",
-    "/etc/",
-    "/var/",
     "/tmp/"
   ],
   "user_profile": {
-    "name": "Jane Doe",
-    "role": "Lead DevOps Engineer",
-    "environment": "Arch Linux / Kitty / Tmux",
-    "ambition": "Automating cloud infrastructure at scale"
+    "name": "Alex",
+    "role": "Lead Backend Engineer",
+    "environment": "Arch Linux / Tmux / Neovim",
+    "ambition": "Building low-latency distributed systems"
   }
 }
 ```
 
 ---
 
-## 2. Advanced Parameter In-Depth
+## 2. Behavioral Personalities (`!u`)
 
-### `shallow_load_dirs` (Safety Mechanism)
-Recursive file scanning is dangerous in root directories. 
-- **The Problem**: If you run `!d` (Codedump) in `/home/user`, Viren might try to read your browser cache, logs, and downloads, leading to massive context usage and system lag.
-- **The Solution**: Any path listed in this array will **never be scanned deeper than 1 level**. 
-- **Recommendation**: Always include your system's root and your user's home directory here.
+Viren allows you to switch between distinct personalities that alter the AI's tone, verbosity, and style.
 
-### `user_profile` (Contextual Tuning)
-The values here are injected into the "Neural Profile" segment of every prompt.
-- **Role**: Changes the AI's technical vocabulary.
-- **Environment**: If you are a "Vim" user, the AI will provide `:w` commands instead of telling you to click a "Save" icon.
-- **Ambition**: Provides a long-term goal for the AI to keep in mind (e.g., "Refactor for readability over speed").
+- **Analytical**: (ID: `analytical`) Logical, systematic, and data-driven. Focuses on proofs and reasoning.
+- **Creative**: (ID: `creative`) Artistic, imaginative, and metaphor-heavy. Great for UI/UX brainstorming.
+- **Focused**: (ID: `focused`) Goal-oriented and concise. Removes all "filler" text for maximum speed.
+- **Empathetic**: (ID: `empathetic`) Emotionally intelligent and supportive. Good for explaining complex topics.
+- **Playful**: (ID: `playful`) Fun, energetic, and full of wit.
+- **Balanced**: (ID: `balanced`) The default professional standard.
+- **Rick Sanchez**: (ID: `rick`) Cynical, sarcastic, and unhinged. Uses the distinct voice of the scientist from Rick and Morty.
 
 ---
 
-## 3. The Logic Engine: Domain Modes (`!v`)
-A "Mode" in Viren is a specialized set of system instructions that override the default behavior.
+## 3. Domain Modes (`!v`)
 
-| Mode | Functional Shift |
-| :--- | :--- |
-| **Zenith** | High-level reasoning. It uses COSMIC metaphors and focuses on philosophical first principles. |
-| **Code Whisperer** | Expert Software Engineer. Removes all "Sure, I can help" filler. Focuses purely on idiomatic code. |
-| **Socratic** | Guiding Teacher. Will never give an answer. Will only ask questions to lead you to the truth. |
-| **DSA Mode** | Data Structures & Algorithms. Focuses on Big-O notation, memory safety, and optimization. |
-| **CyberSec** | Focuses on vulnerability assessment, penetration testing patterns, and OWASP standards. |
+A "Mode" in Viren is a specialized behavioral template that re-architects the entire system prompt for specific technical fields.
 
----
+### Core Modes
+- **Standard**: Professional balanced tone for general queries.
+- **Zenith**: High-level reasoning using cosmic metaphors and philosophical depth.
+- **Code Whisperer**: Expert level pair-programmer. Strips all fluff and focuses on idiomatic code.
+- **Socratic**: Pedagogy mode. The AI never answers directly; it only asks questions to guide you.
+- **Complexity Analyzer**: Specifically tuned to calculate and explain Big-O time and space complexity.
 
-## 4. Visual customization: Theming Engine (`!z`)
-Viren uses a custom-built ANSI renderer. You can switch themes instantly without restarting.
-
-- **DeepSpace**: Default. Optimized for OLED and high-contrast dark terminals.
-- **Neon**: Vibrant colors for low-light environments.
-- **Paper**: Light mode. Optimized for high-glare environments or daylight coding.
-- **Matrix**: Monochrome green. High focus, minimal distractions.
+### Specialized Technical Modes
+- **AlgoThink**: Software engineering and system design patterns.
+- **DSA Mode**: Data Structures & Algorithms specialist.
+- **CyberSec**: Security auditing, penetration testing, and vulnerability research.
+- **Physics/Chemistry/Bio**: Specialized prompts for hard sciences.
+- **FinancePro**: Market analysis, risk modeling, and economic forecasting.
 
 ---
 
-## 5. Overriding Configuration
-Sometimes you need to change settings for just one session. Viren supports **Environment Overrides**:
+## 4. Safety & Performance: `shallow_load_dirs`
 
-```bash
-# Start Viren with a specific model and theme for this run only
-VIREN_DEFAULT_PLATFORM=anthropic VIREN_DEFAULT_MODEL=claude-3-opus viren
+Recursive file scanning is dangerous in root directories. Any path listed in the `shallow_load_dirs` array will **never be scanned deeper than 1 level**. 
+- **Recommendation**: Always include your system's root (`/`) and home folder (`/home/user`) to protect against accidental recursive scanning during a `!d` or `!l` command.
+
+---
+
+## 5. Neural Profile Injections
+
+The `user_profile` section allows the AI to understand your context from the first message.
+- **Role Tuning**: If set to "DevOps," the AI will prioritize automation and infrastructure.
+- **Env Awareness**: If set to "Vim," the AI will suggest terminal commands over GUI instructions.
+
+---
+
+## 6. Windows Installation Details
+
+Viren is fully production-ready for Windows users.
+
+### Environment variables
+Windows users should set API keys via PowerShell:
+```powershell
+[System.Environment]::SetEnvironmentVariable('OPENAI_API_KEY', 'your-key', [System.EnvironmentVariableTarget]::User)
 ```
 
-**Viren is your tool. Bend it to your workflow.**
+### Path configuration
+Ensure the directory containing `viren.exe` is added to your User `PATH` environment variable so you can launch it from any terminal.
+
+**Viren is your digital workshop. Configure it to be the ultimate extension of your technical mind.**

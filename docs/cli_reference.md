@@ -1,81 +1,126 @@
-# Viren CLI Reference: The Manual
+# Viren CLI Reference: The Exhaustive Manual
 
-Viren is a dual-mode application. It functions both as an immersive, interactive shell and as a traditional Unix-style CLI utility. This document provides the exhaustive list of flags, environment variables, and piping patterns.
-
----
-
-## 1. Global Flags (The Binary)
-
-| Flag | Argument | Functional Result |
-| :--- | :--- | :--- |
-| `-h, --help` | None | Displays ASCII branding, command table, and core capabilities. |
-| `-v, --version` | None | Outputs semantic version, build timestamp, and git commit ID. |
-| `-c, --continue` | None | Resumes from the most recent session in `~/.viren/tmp/`. |
-| `-a, --history` | `exact` | Opens the fzf history manager. `exact` disables fuzzy matching. |
-| `-p, --platform` | `name` | Overrides the default platform (e.g., `viren -p anthropic`). |
-| `-m, --model` | `name` | Overrides the default model (e.g., `viren -m gpt-4o`). |
-| `-o, --all` | `p\|m` | Shortcut for both (e.g., `viren -o "groq\|llama3"`). |
-| `-nh, --no-history` | None | Runs Viren without writing anything to the local history database. |
+Viren is a high-performance, dual-mode application. It functions as both an immersive, interactive shell and a traditional Unix-style command-line utility. This document provides the exhaustive list of flags, commands, environment variables, and piping patterns.
 
 ---
 
-## 2. Ingestion Flags (Direct Mode)
+## 1. Binary Invocation & Global Flags
+
+The `viren` binary supports the following flags when launched from your shell:
+
+### Metadata & Info
+- `-h, --help`: Displays the full help dashboard, including the ASCII logo and a summary of interactive commands.
+- `-v, --version`: Outputs the semantic version (e.g., `v1.0.0`), the build timestamp, and the git commit hash.
+
+### Session Management
+- `-c, --continue`: Automatically resumes the most recent conversation stored in `~/.viren/tmp/`.
+- `-a, --history`: Opens the interactive history manager. 
+    - **Argument**: Adding `exact` (e.g., `viren -a exact`) disables fuzzy matching for session titles.
+- `-nh, --no-history`: Prevents Viren from writing the current session to the local history database. Use this for highly sensitive or one-off queries.
+
+### Logic & Platform Overrides
+- `-p, --platform <name>`: Forces Viren to start with a specific provider (e.g., `viren -p groq`).
+- `-m, --model <name>`: Forces Viren to start with a specific model (e.g., `viren -m claude-3-opus`).
+- `-o, --all <p|m>`: A shorthand format to set both at once (e.g., `viren -o "openai|gpt-4o"`).
+
+---
+
+## 2. Ingestion Flags (Direct Execution Mode)
+
+Direct mode allows you to use Viren as a single-shot utility. The output is printed to `stdout` and the program exits.
 
 ### Load File (`-l`)
-Ingests files or URLs as context for a single query.
-- **Syntax**: `viren -l <path> "your prompt"`
-- **Example**: `viren -l error.log "What is the root cause?"`
-- **Piping Example**: `cat data.csv | viren -l schema.sql "Generate an import script"`
+Injects files or URLs as context for a single query.
+- **Usage**: `viren -l <file_path> "prompt"`
+- **Supported Formats**: `.txt`, `.go`, `.py`, `.js`, `.json`, `.pdf`, `.docx`, `.xlsx`, `.csv`.
+- **Example**: `viren -l main.go "Explain the concurrency logic here"`
 
 ### Codedump (`-d`)
-Bundles a directory for a project-wide query.
-- **Syntax**: `viren -d <dir_path> "your prompt"`
-- **Example**: `viren -d ./internal "Refactor these modules for better concurrency"`
+Bundles a directory into a structured context stream.
+- **Usage**: `viren -d <dir_path> "prompt"`
+- **Example**: `viren -d ./internal "Find all potential memory leaks"`
 
-### Web search (`-w`)
-Searches the live web via Brave before answering.
-- **Syntax**: `viren -w "query" "instruction"`
-- **Example**: `viren -w "Go 1.24 release" "What are the new crypto features?"`
+### Web Search (`-w`)
+Searches the live web via Brave Search before answering.
+- **Usage**: `viren -w "query" "instruction"`
+- **Example**: `viren -w "latest rust releases" "Should I update my project?"`
 
 ---
 
-## 3. Environment Variables
+## 3. The Power of Unix Pipes
 
-Viren looks for the following variables to manage logic and security:
+Viren is a "First-Class Citizen" of the Unix pipeline. It treats `stdin` as context and its arguments as instructions.
 
-- **`OPENAI_API_KEY`**: Required for OpenAI models.
+### Piping Context IN
+```bash
+# Debug a log file
+tail -n 50 /var/log/syslog | viren "What is the cause of these errors?"
+
+# Explain a Git diff
+git diff HEAD~1 | viren "Summarize these changes for a technical blog post"
+
+# Ingest data
+cat users.json | viren "Convert this to a SQL insert script"
+```
+
+### Piping Response OUT
+```bash
+# Generate and save a script
+viren "Write a bash script to clean up Docker images" > cleanup.sh
+
+# Count tokens in a response
+viren "Write a short story" | wc -w
+```
+
+---
+
+## 4. Environment Variables
+
+Viren looks for these variables to manage logic and security without touching your `config.json`.
+
+- **`OPENAI_API_KEY`**: Required for all OpenAI models.
 - **`ANTHROPIC_API_KEY`**: Required for Claude models.
-- **`GEMINI_API_KEY`**: Required for Google models.
 - **`DEEP_SEEK_API_KEY`**: Required for DeepSeek models.
-- **`BRAVE_API_KEY`**: Required for the `!w` (Web Search) command.
-- **`VIREN_DEFAULT_PLATFORM`**: Sets the default provider on startup.
-- **`VIREN_DEFAULT_MODEL`**: Sets the default model on startup.
-- **`EDITOR`**: Defines which editor Viren opens for `!e` and `!t`.
+- **`GEMINI_API_KEY`**: Required for Google Gemini models.
+- **`GROQ_API_KEY`**: Required for Groq models.
+- **`BRAVE_API_KEY`**: Required for the `!w` command.
+- **`VIREN_DEFAULT_PLATFORM`**: Overrides the starting provider.
+- **`VIREN_DEFAULT_MODEL`**: Overrides the starting model.
+- **`EDITOR`**: Defines the binary used for `!e` (Export) and `!t` (Editor) modes.
 
 ---
 
-## 4. Piping & Redirects (The Unix Way)
+## 5. Interactive Commands (Bang Commands)
 
-Viren is a "First-Class Citizen" of the Unix pipe.
+Once inside the Viren shell, use these commands to control the application state:
 
-### Reading from Stdin
-You can pipe any text into Viren. It will treat the piped text as context and your argument as the instruction.
-```bash
-git diff HEAD~1 | viren "Write a detailed commit message for these changes"
-```
-
-### Writing to Stdout
-By default, Viren streams to the terminal. You can redirect this to files or other tools.
-```bash
-viren "Write a python script to scrape news" > scraper.py
-viren "List 10 colors" | grep "Blue"
-```
+| Command | functional definition |
+| :--- | :--- |
+| `!q` | **Quit**: Exits and serializes history. |
+| `!h` | **Help**: Opens the fzf command dashboard. |
+| `!c` | **Clear**: Resets the context and clears the screen. |
+| `!m` | **Model**: Searchable menu of available LLMs. |
+| `!p` | **Platform**: Searchable menu of AI providers. |
+| `!u` | **Personality**: Switch between tone templates (Creative, Focused, etc.). |
+| `!v` | **Domain Mode**: Apply specialized system prompts (Zenith, Code Whisperer). |
+| `!z` | **Theme**: Instant ANSI color palette switch. |
+| `!x` | **Shell Record**: Ingest terminal output for debugging. |
+| `!d` | **Codedump**: Bundle your project directory for context. |
+| `!l` | **Load**: Select files/URLs to inject into context. |
+| `!s` | **Scrape**: Extract clean text from a URL. |
+| `!w` | **Web Search**: Perform a live Brave Search. |
+| `!a` | **History**: Interactively browse and restore sessions. |
+| `!y` | **Clipboard**: copy responses to system clipboard. |
+| `!b` | **Backtrack**: Revert the last N turns of conversation. |
+| `!t` | **Editor**: Open long-form input in your preferred text editor. |
 
 ---
 
-## 5. Exit Codes
-- `0`: Success.
-- `1`: Error (Network, API, or File System).
-- `130`: Termination by User (Ctrl+C).
+## 6. Exit Codes
+Viren uses standard exit codes for automation scripting:
+- `0`: Successful execution.
+- `1`: General Error (Configuration missing, API failure).
+- `126`: Command invoked cannot execute.
+- `130`: Terminated by User (Ctrl+C).
 
-**Viren is designed to be the ultimate automation partner.**
+**Viren is designed to be the ultimate automation partner for the modern engineer.**

@@ -10,7 +10,7 @@
 </pre>
 </p>
 
-# VIREN (Virtual Enginner)
+#Virtual Enginner
 
 <p align="center"> <strong>The Advanced Neural Command Interface</strong></p>
 

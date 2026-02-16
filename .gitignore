@@ -1,0 +1,121 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with go test
+*.test
+
+# Coverage profiles and test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Go build cache
+.cache/
+tmp/
+temp/
+
+# Dependency directories
+vendor/
+node_modules/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Build output
+/bin/
+/build/
+/dist/
+
+# Config and env files
+.env*
+*.env
+.env.local
+config.local.*
+
+# Logs
+*.log
+logs/
+
+# General python files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Python virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Editor/IDE
+.idea/
+.vscode/
+.cursor/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+
+# Custom project files
+viren
+*.jpg
+*.jpeg
+*.srt
+*.mp4
+ig_*.json
+ig_*.jpg
+code_dump_*.txt
+.sandbox/
+export_*
+history/
+searxng/
+.claude/
+.gemini/
+.kiro/
+.amazonq/
+.github/agents/
+meme*
+viren_clipboard_*.md
+*.tar.gz
+release/

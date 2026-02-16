@@ -1,0 +1,44 @@
+{
+  "name": "viren",
+  "version": "3.9.3",
+  "description": "A professional CLI chat tool for multiple AI platforms",
+  "main": "index.js",
+  "bin": {
+    "viren": "bin/viren"
+  },
+  "files": [
+    "bin",
+    "cmd",
+    "internal",
+    "pkg",
+    "go.mod",
+    "go.sum",
+    "install.sh",
+    "Makefile",
+    "README.md",
+    "LICENSE"
+  ],
+  "preferGlobal": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fraol163/viren.git"
+  },
+  "scripts": {
+    "install": "bash install.sh",
+    "test": "make test"
+  },
+  "keywords": [
+    "ai",
+    "chat",
+    "cli",
+    "openai",
+    "google",
+    "anthropic",
+    "groq"
+  ],
+  "author": "Fraol Teshome",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

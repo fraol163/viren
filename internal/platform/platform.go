@@ -1,0 +1,608 @@
+package platform
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/fraol163/viren/internal/ui"
+	"github.com/fraol163/viren/pkg/types"
+	"github.com/sashabaranov/go-openai"
+)
+
+// Manager handles AI platform operations
+type Manager struct {
+	client *openai.Client
+	config *types.Config
+}
+
+// NewManager creates a new platform manager
+func NewManager(config *types.Config) *Manager {
+	return &Manager{
+		config: config,
+	}
+}
+
+// Initialize initializes the AI client for the current platform
+func (m *Manager) Initialize() error {
+	if m.config.CurrentPlatform == "openai" {
+		apiKey := os.Getenv("OPENAI_API_KEY")
+
+		m.client = openai.NewClient(apiKey)
+		m.config.CurrentBaseURL = ""
+		return nil
+	}
+
+	platform, exists := m.config.Platforms[m.config.CurrentPlatform]
+	if !exists {
+		return fmt.Errorf("platform %s not found", m.config.CurrentPlatform)
+	}
+
+	var apiKey string
+	if platform.Name != "ollama" {
+		apiKey = os.Getenv(platform.EnvName)
+	}
+
+	clientConfig := openai.DefaultConfig(apiKey)
+
+	baseURL := m.config.CurrentBaseURL
+	if baseURL == "" {
+		if platform.BaseURL.IsMulti() && len(platform.BaseURL.Multi) > 0 {
+			baseURL = platform.BaseURL.Multi[0]
+		} else {
+			baseURL = platform.BaseURL.Single
+		}
+	}
+	m.config.CurrentBaseURL = baseURL
+	clientConfig.BaseURL = baseURL
+	m.client = openai.NewClientWithConfig(clientConfig)
+
+	return nil
+}
+
+// SendChatRequest sends a chat request to the current platform
+func (m *Manager) SendChatRequest(messages []types.ChatMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
+	var openaiMessages []openai.ChatCompletionMessage
+
+	mergedMessages := m.mergeConsecutiveUserMessages(messages)
+
+	for _, msg := range mergedMessages {
+		openaiMessages = append(openaiMessages, openai.ChatCompletionMessage{
+			Role:    msg.Role,
+			Content: msg.Content,
+		})
+	}
+
+	if m.IsReasoningModel(model) {
+		return m.sendNonStreamingRequest(openaiMessages, model, streamingCancel, isStreaming, animationCancel, terminal)
+	}
+
+	return m.sendStreamingRequest(openaiMessages, model, streamingCancel, isStreaming, animationCancel, terminal)
+}
+
+// mergeConsecutiveUserMessages combines consecutive user messages into one
+// This handles cases where file content is loaded as one message, then a question is asked
+func (m *Manager) mergeConsecutiveUserMessages(messages []types.ChatMessage) []types.ChatMessage {
+	if len(messages) <= 1 {
+		return messages
+	}
+
+	var result []types.ChatMessage
+	var lastUserContent []string
+
+	for _, msg := range messages {
+		if msg.Role == "user" {
+			lastUserContent = append(lastUserContent, msg.Content)
+		} else {
+
+			if len(lastUserContent) > 0 {
+				result = append(result, types.ChatMessage{
+					Role:    "user",
+					Content: strings.Join(lastUserContent, "\n\n"),
+				})
+				lastUserContent = nil
+			}
+			result = append(result, msg)
+		}
+	}
+
+	if len(lastUserContent) > 0 {
+		result = append(result, types.ChatMessage{
+			Role:    "user",
+			Content: strings.Join(lastUserContent, "\n\n"),
+		})
+	}
+
+	return result
+}
+
+// ListModels returns available models for the current platform
+func (m *Manager) ListModels() ([]string, error) {
+	if m.config.CurrentPlatform == "openai" {
+		models, err := m.client.ListModels(context.Background())
+		if err != nil {
+			return nil, err
+		}
+
+		var modelNames []string
+		for _, model := range models.Models {
+			modelNames = append(modelNames, model.ID)
+		}
+		return modelNames, nil
+	}
+
+	platform := m.config.Platforms[m.config.CurrentPlatform]
+	return m.fetchPlatformModels(platform)
+}
+
+// SelectPlatform handles platform selection and model selection
+func (m *Manager) SelectPlatform(platformKey, modelName string, fzfSelector func([]string, string) (string, error)) (map[string]interface{}, error) {
+	platformChanged := false
+	if platformKey == "" {
+		var platforms []string
+		platforms = append(platforms, "openai")
+		for name := range m.config.Platforms {
+			platforms = append(platforms, name)
+		}
+
+		selected, err := fzfSelector(platforms, "platform: ")
+		if err != nil {
+			return nil, err
+		}
+
+		if selected == "" {
+			return nil, fmt.Errorf("no platform selected")
+		}
+
+		platformKey = selected
+		platformChanged = true
+	}
+
+	if platformKey == "openai" {
+		finalModel := modelName
+		if platformChanged || finalModel == "" {
+			apiKey := os.Getenv("OPENAI_API_KEY")
+			client := openai.NewClient(apiKey)
+
+			var modelNames []string
+			if apiKey != "" {
+				models, err := client.ListModels(context.Background())
+				if err == nil {
+					for _, model := range models.Models {
+						modelNames = append(modelNames, model.ID)
+					}
+				}
+			}
+
+			if len(modelNames) == 0 {
+				modelNames = []string{"gpt-4o", "gpt-4o-mini", "o1-preview", "o1-mini"}
+			}
+
+			selected, err := fzfSelector(modelNames, "model: ")
+			if err != nil {
+				return nil, err
+			}
+
+			if selected == "" {
+				return nil, fmt.Errorf("no model selected")
+			}
+			finalModel = selected
+		}
+
+		return map[string]interface{}{
+			"platform_name": "openai",
+			"picked_model":  finalModel,
+			"base_url":      "",
+			"env_name":      "OPENAI_API_KEY",
+		}, nil
+	}
+
+	platform, exists := m.config.Platforms[platformKey]
+	if !exists {
+		return nil, fmt.Errorf("platform %s not supported", platformKey)
+	}
+
+	selectedURL := platform.BaseURL.Single
+	if platform.BaseURL.IsMulti() {
+		selected, err := fzfSelector(platform.BaseURL.Multi, "region: ")
+		if err != nil {
+			return nil, err
+		}
+
+		if selected == "" {
+			return nil, fmt.Errorf("no region selected")
+		}
+
+		selectedURL = selected
+	}
+
+	finalModel := modelName
+	var modelsList []string
+
+	if finalModel == "" || platformChanged {
+		var err error
+		modelsList, err = m.fetchPlatformModels(platform)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve models: %v", err)
+		}
+
+		if len(modelsList) == 0 {
+			return nil, fmt.Errorf("no models found or returned in unexpected format")
+		}
+
+		selected, err := fzfSelector(modelsList, "model: ")
+		if err != nil {
+			return nil, err
+		}
+
+		if selected == "" {
+			return nil, fmt.Errorf("no model selected")
+		}
+
+		finalModel = selected
+	}
+
+	return map[string]interface{}{
+		"platform_name": platformKey,
+		"picked_model":  finalModel,
+		"base_url":      selectedURL,
+		"env_name":      platform.EnvName,
+		"models":        modelsList,
+	}, nil
+}
+
+// FetchAllModelsAsync fetches all models from all platforms asynchronously
+// Returns a list of models formatted as "platform|model_name"
+// Only fetches from platforms where API keys are defined and not empty
+func (m *Manager) FetchAllModelsAsync() ([]string, error) {
+	var wg sync.WaitGroup
+	results := make(chan string)
+	done := make(chan bool)
+	var models []string
+	var mu sync.Mutex
+
+	platformsToFetch := []struct {
+		name     string
+		platform types.Platform
+	}{
+		{"openai", types.Platform{}},
+	}
+
+	for name, platform := range m.config.Platforms {
+		platformsToFetch = append(platformsToFetch, struct {
+			name     string
+			platform types.Platform
+		}{name, platform})
+	}
+
+	go func() {
+		for model := range results {
+			mu.Lock()
+			models = append(models, model)
+			mu.Unlock()
+		}
+		done <- true
+	}()
+
+	for _, p := range platformsToFetch {
+		platformName := p.name
+		platformConfig := p.platform
+
+		wg.Add(1)
+		go func(name string, config types.Platform) {
+			defer wg.Done()
+
+			if name == "openai" {
+				apiKey := os.Getenv("OPENAI_API_KEY")
+				if apiKey == "" {
+					return
+				}
+
+				client := openai.NewClient(apiKey)
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+
+				modelList, err := client.ListModels(ctx)
+				if err != nil {
+					return
+				}
+
+				for _, model := range modelList.Models {
+					platformNameFormatted := strings.ReplaceAll(name, " ", "-")
+					results <- fmt.Sprintf("%s|%s", platformNameFormatted, model.ID)
+				}
+				return
+			}
+
+			apiKey := os.Getenv(platformConfig.EnvName)
+			if apiKey == "" && platformConfig.Name != "ollama" {
+				return
+			}
+
+			modelList, err := m.fetchPlatformModels(platformConfig)
+			if err != nil {
+				return
+			}
+
+			for _, model := range modelList {
+				platformNameFormatted := strings.ReplaceAll(name, " ", "-")
+				results <- fmt.Sprintf("%s|%s", platformNameFormatted, model)
+			}
+		}(platformName, platformConfig)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	<-done
+
+	if len(models) == 0 {
+		return nil, fmt.Errorf("no models found from any platform")
+	}
+
+	return models, nil
+}
+
+// isSlowModel checks if the model is a slow/reasoning model that requires non-streaming
+// NOTE: This is hard-coded for what is considered a slow model
+func (m *Manager) isSlowModel(modelName string) bool {
+
+	matched, _ := regexp.MatchString(`gpt-.+-search`, modelName)
+	if matched {
+		return false
+	}
+
+	if modelName == "gpt-5" {
+		return true
+	}
+
+	if strings.Contains(modelName, "gpt") && strings.Contains(modelName, "codex") {
+		return true
+	}
+
+	matched, _ = regexp.MatchString(`grok-4(-\d+)?-fast.*non-reasoning`, modelName)
+	if matched {
+		return false
+	}
+
+	patterns := []string{
+		`^o\d+`,
+		`^(models/)?gemini-\d+\.\d+-pro.*`,
+		`gemini-3-pro-preview$`,
+		`^deepseek-reasoner$`,
+		`^grok-4.*`,
+		`^claude-opus-4.*`,
+	}
+
+	for _, pattern := range patterns {
+		matched, _ := regexp.MatchString(pattern, modelName)
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+// IsReasoningModel checks if the model is a reasoning model (like o1, o2, etc.)
+func (m *Manager) IsReasoningModel(modelName string) bool {
+	return m.isSlowModel(modelName)
+}
+
+func (m *Manager) sendNonStreamingRequest(openaiMessages []openai.ChatCompletionMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
+	req := openai.ChatCompletionRequest{
+		Model:    model,
+		Messages: openaiMessages,
+		Stream:   false,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	*isStreaming = true
+	*streamingCancel = cancel
+
+	resp, err := m.client.CreateChatCompletion(ctx, req)
+
+	*isStreaming = false
+	*streamingCancel = nil
+
+	if animationCancel != nil {
+		animationCancel()
+		fmt.Print("\r\033[2K\r")
+	}
+
+	if err != nil {
+		if ctx.Err() == context.Canceled {
+			return "", fmt.Errorf("request was interrupted")
+		}
+		return "", err
+	}
+
+	if len(resp.Choices) > 0 {
+		theme := terminal.GetTheme()
+
+		reasoning := resp.Choices[0].Message.ReasoningContent
+		if reasoning != "" && !m.config.IsPipedOutput {
+			fmt.Print("\r\033[2K\r")
+			fmt.Printf("%s THOUGHT \033[0m ❯ \033[38;2;0;0;0m%s\033[0m\n", theme.ThoughtBox, reasoning)
+		}
+		fullResponse := resp.Choices[0].Message.Content
+		return fullResponse, nil
+	}
+
+	return "", fmt.Errorf("no response content")
+}
+
+func (m *Manager) sendStreamingRequest(openaiMessages []openai.ChatCompletionMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
+	req := openai.ChatCompletionRequest{
+		Model:    model,
+		Messages: openaiMessages,
+		Stream:   true,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	*isStreaming = true
+	*streamingCancel = cancel
+
+	stream, err := m.client.CreateChatCompletionStream(ctx, req)
+	if err != nil {
+		*isStreaming = false
+		*streamingCancel = nil
+		return "", err
+	}
+	defer func() {
+		stream.Close()
+		*isStreaming = false
+		*streamingCancel = nil
+	}()
+
+	var response strings.Builder
+	firstDelta := true
+	firstReasoning := true
+	inReasoning := false
+	theme := terminal.GetTheme()
+
+	for {
+		completion, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			if ctx.Err() == context.Canceled {
+				return response.String(), nil
+			}
+			return "", err
+		}
+
+		if len(completion.Choices) > 0 {
+
+			if animationCancel != nil {
+				animationCancel()
+				fmt.Print("\r\033[2K\r")
+				animationCancel = nil
+			}
+
+			reasoning := completion.Choices[0].Delta.ReasoningContent
+			if reasoning != "" {
+				if firstReasoning && !m.config.IsPipedOutput {
+					fmt.Print("\r\033[2K\r")
+					fmt.Printf("%s THOUGHT \033[0m ❯ \033[38;2;0;0;0m", theme.ThoughtBox)
+					firstReasoning = false
+					inReasoning = true
+				}
+				fmt.Print(reasoning)
+				continue
+			}
+
+			delta := completion.Choices[0].Delta.Content
+			if delta != "" {
+				if inReasoning {
+					fmt.Print("\033[0m\n")
+					inReasoning = false
+				}
+				if firstDelta && !m.config.IsPipedOutput {
+					fmt.Print("\r\033[2K\r")
+					fmt.Printf("%s ASSISTANT \033[0m ❯ ", theme.AssistantBox)
+					firstDelta = false
+				}
+				if m.config.IsPipedOutput {
+					fmt.Print(delta)
+				} else {
+					fmt.Print("\033[92m" + delta + "\033[0m")
+				}
+				response.WriteString(delta)
+			}
+		}
+	}
+
+	return response.String(), nil
+}
+
+func (m *Manager) fetchPlatformModels(platform types.Platform) ([]string, error) {
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+
+	apiKey := os.Getenv(platform.EnvName)
+	if apiKey == "" && platform.Name != "ollama" {
+
+		return []string{}, nil
+	}
+
+	url := platform.Models.URL
+	if platform.Name == "google" {
+		url = strings.Replace(url, "https://generativelanguage.googleapis.com/v1beta/models", "https://generativelanguage.googleapis.com/v1beta/models?key="+apiKey, 1)
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if platform.Name == "anthropic" {
+		req.Header.Set("x-api-key", apiKey)
+		req.Header.Set("anthropic-version", "2023-06-01")
+	} else if platform.Name != "ollama" && platform.Name != "google" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData interface{}
+	err = json.Unmarshal(body, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	return m.extractModelsFromJSON(jsonData, platform.Models.JSONPath)
+}
+
+func (m *Manager) extractModelsFromJSON(data interface{}, jsonPath string) ([]string, error) {
+	parts := strings.Split(jsonPath, ".")
+
+	current := data
+
+	for i, part := range parts[:len(parts)-1] {
+		if dataMap, ok := current.(map[string]interface{}); ok {
+			if val, exists := dataMap[part]; exists {
+				current = val
+			} else {
+				return nil, fmt.Errorf("path part %s not found", part)
+			}
+		} else {
+			return nil, fmt.Errorf("expected object at part %d", i)
+		}
+	}
+
+	fieldName := parts[len(parts)-1]
+	var models []string
+
+	if dataArray, ok := current.([]interface{}); ok {
+		for _, item := range dataArray {
+			if itemMap, ok := item.(map[string]interface{}); ok {
+				if modelName, exists := itemMap[fieldName]; exists {
+					if nameStr, ok := modelName.(string); ok {
+						models = append(models, nameStr)
+					}
+				}
+			}
+		}
+	}
+
+	return models, nil
+}

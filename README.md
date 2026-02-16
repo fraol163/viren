@@ -10,8 +10,9 @@
 </pre>
 </p>
 
-# VIREN
-**Virtual Enginner**: The Advanced Neural Command Interface
+# VIREN (Virtual Enginner)
+
+<p align="center"> <strong>The Advanced Neural Command Interface</strong></p>
 
 <p align="center">
   <strong>Unleashing elite machine intelligence directly into your terminal environment.</strong>

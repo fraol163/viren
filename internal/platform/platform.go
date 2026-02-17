@@ -17,20 +17,17 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-// Manager handles AI platform operations
 type Manager struct {
-	client *openai.Client
-	config *types.Config
+	client	*openai.Client
+	config	*types.Config
 }
 
-// NewManager creates a new platform manager
 func NewManager(config *types.Config) *Manager {
 	return &Manager{
 		config: config,
 	}
 }
 
-// Initialize initializes the AI client for the current platform
 func (m *Manager) Initialize() error {
 	if m.config.CurrentPlatform == "openai" {
 		apiKey := os.Getenv("OPENAI_API_KEY")
@@ -67,7 +64,6 @@ func (m *Manager) Initialize() error {
 	return nil
 }
 
-// SendChatRequest sends a chat request to the current platform
 func (m *Manager) SendChatRequest(messages []types.ChatMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
 	var openaiMessages []openai.ChatCompletionMessage
 
@@ -75,8 +71,8 @@ func (m *Manager) SendChatRequest(messages []types.ChatMessage, model string, st
 
 	for _, msg := range mergedMessages {
 		openaiMessages = append(openaiMessages, openai.ChatCompletionMessage{
-			Role:    msg.Role,
-			Content: msg.Content,
+			Role:		msg.Role,
+			Content:	msg.Content,
 		})
 	}
 
@@ -87,8 +83,6 @@ func (m *Manager) SendChatRequest(messages []types.ChatMessage, model string, st
 	return m.sendStreamingRequest(openaiMessages, model, streamingCancel, isStreaming, animationCancel, terminal)
 }
 
-// mergeConsecutiveUserMessages combines consecutive user messages into one
-// This handles cases where file content is loaded as one message, then a question is asked
 func (m *Manager) mergeConsecutiveUserMessages(messages []types.ChatMessage) []types.ChatMessage {
 	if len(messages) <= 1 {
 		return messages
@@ -104,8 +98,8 @@ func (m *Manager) mergeConsecutiveUserMessages(messages []types.ChatMessage) []t
 
 			if len(lastUserContent) > 0 {
 				result = append(result, types.ChatMessage{
-					Role:    "user",
-					Content: strings.Join(lastUserContent, "\n\n"),
+					Role:		"user",
+					Content:	strings.Join(lastUserContent, "\n\n"),
 				})
 				lastUserContent = nil
 			}
@@ -115,15 +109,14 @@ func (m *Manager) mergeConsecutiveUserMessages(messages []types.ChatMessage) []t
 
 	if len(lastUserContent) > 0 {
 		result = append(result, types.ChatMessage{
-			Role:    "user",
-			Content: strings.Join(lastUserContent, "\n\n"),
+			Role:		"user",
+			Content:	strings.Join(lastUserContent, "\n\n"),
 		})
 	}
 
 	return result
 }
 
-// ListModels returns available models for the current platform
 func (m *Manager) ListModels() ([]string, error) {
 	if m.config.CurrentPlatform == "openai" {
 		models, err := m.client.ListModels(context.Background())
@@ -142,7 +135,6 @@ func (m *Manager) ListModels() ([]string, error) {
 	return m.fetchPlatformModels(platform)
 }
 
-// SelectPlatform handles platform selection and model selection
 func (m *Manager) SelectPlatform(platformKey, modelName string, fzfSelector func([]string, string) (string, error)) (map[string]interface{}, error) {
 	platformChanged := false
 	if platformKey == "" {
@@ -197,10 +189,10 @@ func (m *Manager) SelectPlatform(platformKey, modelName string, fzfSelector func
 		}
 
 		return map[string]interface{}{
-			"platform_name": "openai",
-			"picked_model":  finalModel,
-			"base_url":      "",
-			"env_name":      "OPENAI_API_KEY",
+			"platform_name":	"openai",
+			"picked_model":		finalModel,
+			"base_url":		"",
+			"env_name":		"OPENAI_API_KEY",
 		}, nil
 	}
 
@@ -250,17 +242,14 @@ func (m *Manager) SelectPlatform(platformKey, modelName string, fzfSelector func
 	}
 
 	return map[string]interface{}{
-		"platform_name": platformKey,
-		"picked_model":  finalModel,
-		"base_url":      selectedURL,
-		"env_name":      platform.EnvName,
-		"models":        modelsList,
+		"platform_name":	platformKey,
+		"picked_model":		finalModel,
+		"base_url":		selectedURL,
+		"env_name":		platform.EnvName,
+		"models":		modelsList,
 	}, nil
 }
 
-// FetchAllModelsAsync fetches all models from all platforms asynchronously
-// Returns a list of models formatted as "platform|model_name"
-// Only fetches from platforms where API keys are defined and not empty
 func (m *Manager) FetchAllModelsAsync() ([]string, error) {
 	var wg sync.WaitGroup
 	results := make(chan string)
@@ -269,16 +258,16 @@ func (m *Manager) FetchAllModelsAsync() ([]string, error) {
 	var mu sync.Mutex
 
 	platformsToFetch := []struct {
-		name     string
-		platform types.Platform
+		name		string
+		platform	types.Platform
 	}{
 		{"openai", types.Platform{}},
 	}
 
 	for name, platform := range m.config.Platforms {
 		platformsToFetch = append(platformsToFetch, struct {
-			name     string
-			platform types.Platform
+			name		string
+			platform	types.Platform
 		}{name, platform})
 	}
 
@@ -352,8 +341,6 @@ func (m *Manager) FetchAllModelsAsync() ([]string, error) {
 	return models, nil
 }
 
-// isSlowModel checks if the model is a slow/reasoning model that requires non-streaming
-// NOTE: This is hard-coded for what is considered a slow model
 func (m *Manager) isSlowModel(modelName string) bool {
 
 	matched, _ := regexp.MatchString(`gpt-.+-search`, modelName)
@@ -392,16 +379,15 @@ func (m *Manager) isSlowModel(modelName string) bool {
 	return false
 }
 
-// IsReasoningModel checks if the model is a reasoning model (like o1, o2, etc.)
 func (m *Manager) IsReasoningModel(modelName string) bool {
 	return m.isSlowModel(modelName)
 }
 
 func (m *Manager) sendNonStreamingRequest(openaiMessages []openai.ChatCompletionMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
 	req := openai.ChatCompletionRequest{
-		Model:    model,
-		Messages: openaiMessages,
-		Stream:   false,
+		Model:		model,
+		Messages:	openaiMessages,
+		Stream:		false,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -442,9 +428,9 @@ func (m *Manager) sendNonStreamingRequest(openaiMessages []openai.ChatCompletion
 
 func (m *Manager) sendStreamingRequest(openaiMessages []openai.ChatCompletionMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
 	req := openai.ChatCompletionRequest{
-		Model:    model,
-		Messages: openaiMessages,
-		Stream:   true,
+		Model:		model,
+		Messages:	openaiMessages,
+		Stream:		true,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -27,14 +27,10 @@ import (
 )
 
 var (
-
 	version	= "v1.0.0"
 
-
-
-
-	buildTime = "unknown"
-	gitCommit = "unknown"
+	buildTime	= "unknown"
+	gitCommit	= "unknown"
 )
 
 func init() {
@@ -68,7 +64,6 @@ func main() {
 
 	chatManager.UpdateFullSystemPrompt()
 
-	// parse command line arguments
 	var (
 		helpFlag	= flag.Bool("h", false, "Show help")
 		codedumpFlag	= flag.String("d", "", "Generate codedump file (optionally specify directory path)")
@@ -136,7 +131,6 @@ func main() {
 	}
 	remainingArgs := flag.Args()
 
-	// Check if input is being piped
 	var pipedInput string
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
@@ -438,7 +432,6 @@ func main() {
 		queries := splitByDelimiters(*webSearchFlag)
 		prompt := strings.Join(flag.Args(), " ")
 
-		// Combine results from multiple queries
 		var allResults []string
 		for _, query := range queries {
 			results, err := terminal.WebSearch(query)
@@ -467,7 +460,6 @@ func main() {
 		urls := splitByDelimiters(*scrapeURLFlag)
 		prompt := strings.Join(flag.Args(), " ")
 
-		// Combine content from multiple URLs
 		var allContent []string
 		for _, url := range urls {
 			content, err := terminal.ScrapeURLs([]string{url})
@@ -496,7 +488,6 @@ func main() {
 		files := splitByDelimiters(*loadFileFlag)
 		prompt := strings.Join(flag.Args(), " ")
 
-		// Load content from all specified files
 		var allContent []string
 		for _, file := range files {
 
@@ -586,7 +577,6 @@ func processDirectQuery(query string, chatManager *chat.Manager, platformManager
 
 	chatManager.AddUserMessage(query)
 
-	// Pass animation context to SendChatRequest if needed
 	var animationCancel context.CancelFunc
 	if !state.Config.IsPipedOutput {
 		var ctx context.Context
@@ -669,13 +659,12 @@ func processDirectQuery(query string, chatManager *chat.Manager, platformManager
 	return nil
 }
 
-// runInteractiveMode runs the main interactive chat loop
 func runInteractiveMode(chatManager *chat.Manager, platformManager *platform.Manager, terminal *ui.Terminal, state *types.AppState, noHistory bool) {
 
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:          terminal.GetPrompt(),
-		InterruptPrompt: "",
-		EOFPrompt:       "exit",
+		Prompt:			terminal.GetPrompt(),
+		InterruptPrompt:	"",
+		EOFPrompt:		"exit",
 	})
 	if err != nil {
 		panic(err)
@@ -712,8 +701,8 @@ func runInteractiveMode(chatManager *chat.Manager, platformManager *platform.Man
 			}
 
 			multiLineRl, err := readline.NewEx(&readline.Config{
-				Prompt:      "... ",
-				HistoryFile: "/dev/null",
+				Prompt:		"... ",
+				HistoryFile:	"/dev/null",
 			})
 			if err != nil {
 				terminal.PrintError(fmt.Sprintf("error creating multi-line input: %v", err))
@@ -1350,8 +1339,8 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		terminal.PrintInfo("multi-line mode (exit with '\\')")
 
 		multiLineRl, err := readline.NewEx(&readline.Config{
-			Prompt:      "... ",
-			HistoryFile: "/dev/null",
+			Prompt:		"... ",
+			HistoryFile:	"/dev/null",
 		})
 		if err != nil {
 			terminal.PrintError(fmt.Sprintf("error creating multi-line input: %v", err))
@@ -1464,7 +1453,6 @@ func handleFileLoad(chatManager *chat.Manager, terminal *ui.Terminal, state *typ
 		return true
 	}
 
-	// Resolve full paths if using custom directory
 	var fullPaths []string
 	if dirPath != "" {
 		for _, selection := range selections {
@@ -1567,7 +1555,6 @@ func handleShellCommand(command string, chatManager *chat.Manager, terminal *ui.
 	signal.Notify(sigChan, os.Interrupt)
 	defer signal.Stop(sigChan)
 
-	// Capture output while streaming it live
 	var outputBuffer strings.Builder
 
 	done := make(chan bool, 2)
@@ -1692,7 +1679,6 @@ func handleShowState(chatManager *chat.Manager, terminal *ui.Terminal, state *ty
 	chatHistory := chatManager.GetChatHistory()
 	chatCount := len(chatHistory) - 1
 
-	// Calculate total token count (including both history and messages for accuracy)
 	var totalContent string
 	for _, entry := range chatHistory {
 		totalContent += entry.User + " " + entry.Bot + " "
@@ -1751,7 +1737,6 @@ func handleTokenCount(filePath string, model string, terminal *ui.Terminal, stat
 		}
 	}
 
-	// Map model names to tokenizer encodings
 	var encoding tokenizer.Encoding
 	switch {
 	case strings.Contains(strings.ToLower(targetModel), "gpt-4"):
@@ -1789,7 +1774,6 @@ func handleTokenCount(filePath string, model string, terminal *ui.Terminal, stat
 	return nil
 }
 
-// splitByDelimiters splits a string by both commas and pipes, trimming whitespace
 func splitByDelimiters(input string) []string {
 
 	parts := strings.Split(input, ",")
@@ -1809,16 +1793,12 @@ func splitByDelimiters(input string) []string {
 	return result
 }
 
-// handleFlagWithPrompt sends context and prompt to AI, then displays response
-// ctxContent: the loaded/scraped/searched content
-// prompt: the user's query/instruction
 func handleFlagWithPrompt(chatManager *chat.Manager, platformManager *platform.Manager, terminal *ui.Terminal, state *types.AppState, ctxContent string, prompt string, noHistory bool) error {
 
 	combinedMessage := ctxContent + "\n\n" + prompt
 
 	chatManager.AddUserMessage(combinedMessage)
 
-	// Pass animation context to SendChatRequest if needed
 	var animationCancel context.CancelFunc
 	if !state.Config.IsPipedOutput {
 		var ctx context.Context
@@ -1860,7 +1840,6 @@ func handleFlagWithPrompt(chatManager *chat.Manager, platformManager *platform.M
 	return nil
 }
 
-// handleScrapeURLs handles the !s command for scraping URLs
 func handleScrapeURLs(urls []string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState) bool {
 	if len(urls) == 0 {
 		terminal.PrintError("no URLs provided")
@@ -1882,7 +1861,6 @@ func handleScrapeURLs(urls []string, chatManager *chat.Manager, terminal *ui.Ter
 	return true
 }
 
-// handleWebSearch handles the !w command for web search
 func handleWebSearch(query string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState) bool {
 	if query == "" {
 		terminal.PrintError("no search query provided")
@@ -1904,7 +1882,6 @@ func handleWebSearch(query string, chatManager *chat.Manager, terminal *ui.Termi
 	return true
 }
 
-// generateUniqueCodeDumpFilename generates a unique filename for code dump with collision detection
 func generateUniqueCodeDumpFilename(currentDir, content string) string {
 	baseHash := chat.GenerateHashFromContent(content, 8)
 	filename := fmt.Sprintf("viren_cd%s.txt", baseHash)
@@ -1936,12 +1913,11 @@ func generateUniqueCodeDumpFilename(currentDir, content string) string {
 	return fmt.Sprintf("viren_cd%s.txt", uuid.New().String())
 }
 
-// handleAllModels handles the !o command for selecting from all available models
 func handleAllModels(chatManager *chat.Manager, platformManager *platform.Manager, terminal *ui.Terminal, state *types.AppState) bool {
-	// Create channels for async operation
+
 	type modelResult struct {
-		models []string
-		err    error
+		models	[]string
+		err	error
 	}
 	resultChan := make(chan modelResult)
 
@@ -1968,10 +1944,9 @@ func handleAllModels(chatManager *chat.Manager, platformManager *platform.Manage
 
 	models := result.models
 
-	// Create a map to store platform and model info indexed by display string
 	type modelInfo struct {
-		platform string
-		model    string
+		platform	string
+		model		string
 	}
 	modelMap := make(map[string]modelInfo)
 

@@ -9,7 +9,6 @@ import (
 	"github.com/fraol163/viren/pkg/types"
 )
 
-// GetTempDir returns the application's temporary directory, creating it if it doesn't exist
 func GetTempDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -25,7 +24,6 @@ func GetTempDir() (string, error) {
 	return tempDir, nil
 }
 
-// IsShallowLoadDir checks if a directory should be loaded shallowly (only 1 level deep)
 func IsShallowLoadDir(cfg *types.Config, dirPath string) bool {
 
 	absPath, err := filepath.Abs(dirPath)

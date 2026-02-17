@@ -32,26 +32,22 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Compiled regex patterns for reuse
 var (
-	codeBlockRegex = regexp.MustCompile("(?s)```([a-zA-Z0-9]*)\n(.*?)\n```")
-	urlRegex       = regexp.MustCompile(`https?://[^\s<>"{}|\\^` + "`" + `\[\]]+`)
-	sentenceRegex  = regexp.MustCompile(`[.!?]+\s+`)
+	codeBlockRegex	= regexp.MustCompile("(?s)```([a-zA-Z0-9]*)\n(.*?)\n```")
+	urlRegex	= regexp.MustCompile(`https?://[^\s<>"{}|\\^` + "`" + `\[\]]+`)
+	sentenceRegex	= regexp.MustCompile(`[.!?]+\s+`)
 )
 
-// Terminal handles terminal-related operations
 type Terminal struct {
 	config *types.Config
 }
 
-// NewTerminal creates a new terminal handler
 func NewTerminal(config *types.Config) *Terminal {
 	return &Terminal{
 		config: config,
 	}
 }
 
-// GetTheme returns the current theme
 func (t *Terminal) GetTheme() types.Theme {
 	if t.config.CurrentTheme == "" {
 		return GetDefaultTheme()
@@ -59,12 +55,10 @@ func (t *Terminal) GetTheme() types.Theme {
 	return GetThemeByID(t.config.CurrentTheme)
 }
 
-// SetTheme updates the current theme in config
 func (t *Terminal) SetTheme(themeID string) {
 	t.config.CurrentTheme = themeID
 }
 
-// ApplyTheme applies the global background and foreground colors of the theme
 func (t *Terminal) ApplyTheme() {
 	if t.config.IsPipedOutput {
 		return
@@ -97,13 +91,11 @@ func (t *Terminal) ApplyTheme() {
 	}
 }
 
-// GetPrompt returns the colored prompt based on the current theme
 func (t *Terminal) GetPrompt() string {
 	theme := t.GetTheme()
 	return fmt.Sprintf("%s USER \033[0m ❯ ", theme.UserBox)
 }
 
-// ShowLogo prints the ASCII art logo for Viren
 func (t *Terminal) ShowLogo() {
 	if t.config.IsPipedOutput {
 		return
@@ -139,7 +131,6 @@ func (t *Terminal) ShowLogo() {
 	fmt.Printf("  \033[92m○\033[0m \033[1mCONNECTED\033[0m  %s[\033[0m\033[1;96m%s\033[0m%s/\033[0m\033[1;95m%s\033[0m%s%s%s]\033[0m\n", theme.BorderColor, t.config.CurrentPlatform, theme.BorderColor, t.config.CurrentModel, modeStr, persStr, theme.BorderColor)
 }
 
-// ClearTerminal clears the physical terminal screen
 func (t *Terminal) ClearTerminal() {
 	if t.config.IsPipedOutput {
 		return
@@ -148,12 +139,10 @@ func (t *Terminal) ClearTerminal() {
 	fmt.Print("\033[H\033[2J")
 }
 
-// escapeShellArg escapes a string for safe shell usage by wrapping in single quotes
 func escapeShellArg(arg string) string {
 	return "'" + strings.ReplaceAll(arg, "'", "'\"'\"'") + "'"
 }
 
-// ContainsAllOption checks if the ">all" option was selected in a list of items
 func ContainsAllOption(items []string) bool {
 	for _, item := range items {
 		if strings.HasPrefix(item, ">all") {
@@ -163,7 +152,6 @@ func ContainsAllOption(items []string) bool {
 	return false
 }
 
-// runFzfCore executes fzf and returns raw output bytes, handling common setup and error cases
 func (t *Terminal) runFzfCore(fzfArgs []string, inputText string) ([]byte, bool, error) {
 	tempDir, err := util.GetTempDir()
 	if err != nil {
@@ -206,7 +194,6 @@ func (t *Terminal) runFzfCore(fzfArgs []string, inputText string) ([]byte, bool,
 	return content, false, nil
 }
 
-// runFzfSSHSafe executes fzf in a way that works correctly over SSH connections
 func (t *Terminal) runFzfSSHSafe(fzfArgs []string, inputText string) (string, error) {
 	content, cancelled, err := t.runFzfCore(fzfArgs, inputText)
 	if err != nil {
@@ -218,7 +205,6 @@ func (t *Terminal) runFzfSSHSafe(fzfArgs []string, inputText string) (string, er
 	return strings.TrimSpace(string(content)), nil
 }
 
-// runFzfSSHSafeWithQuery executes fzf with --print-query in a SSH-safe way
 func (t *Terminal) runFzfSSHSafeWithQuery(fzfArgs []string, inputText string) ([]string, error) {
 	content, cancelled, err := t.runFzfCore(fzfArgs, inputText)
 	if err != nil {
@@ -230,13 +216,11 @@ func (t *Terminal) runFzfSSHSafeWithQuery(fzfArgs []string, inputText string) ([
 	return strings.Split(strings.TrimRight(string(content), "\n"), "\n"), nil
 }
 
-// IsTerminal checks if the input is from a terminal
 func (t *Terminal) IsTerminal() bool {
 	fileInfo, _ := os.Stdin.Stat()
 	return (fileInfo.Mode() & os.ModeCharDevice) != 0
 }
 
-// ShowHelp displays the help information
 func (t *Terminal) ShowHelp() {
 	t.ShowLogo()
 
@@ -282,7 +266,6 @@ func (t *Terminal) ShowHelp() {
 	fmt.Println("\033[38;2;0;0;0m" + strings.Repeat("━", 60) + "\033[0m")
 }
 
-// RecordShellSession records the entire shell session and returns the content as a string.
 func (t *Terminal) RecordShellSession() (string, error) {
 	shell := os.Getenv("SHELL")
 	if shell == "" {
@@ -302,12 +285,6 @@ func (t *Terminal) RecordShellSession() (string, error) {
 
 	t.PrintInfo(fmt.Sprintf("%s session started", shell))
 
-	// Use the 'script' command to record the session with cross-platform compatibility
-	// The issue is that different Unix systems expect different syntax:
-	// - Linux (util-linux): script [options] [file]
-	// - macOS/BSD: script [options] [file] [command]
-	//
-	// We'll use the simpler approach that works across platforms
 	var cmd *exec.Cmd
 
 	cmd = exec.Command("script", "-q", tempFile.Name())
@@ -346,8 +323,6 @@ func (t *Terminal) RecordShellSession() (string, error) {
 	return string(content), nil
 }
 
-// ShowHelpFzf displays the help information using fzf for interactive selection.
-// Returns the selected command if it should be executed, empty string otherwise.
 func (t *Terminal) ShowHelpFzf() string {
 	options := t.getInteractiveHelpOptions()
 
@@ -412,7 +387,6 @@ func (t *Terminal) processHelpSelection(selected string, options []string) strin
 	return ""
 }
 
-// getCommandList returns the list of help commands
 func (t *Terminal) getCommandList() []string {
 	return []string{
 		fmt.Sprintf("%s - exit interface", t.config.ExitKey),
@@ -442,7 +416,6 @@ func (t *Terminal) getCommandList() []string {
 	}
 }
 
-// getInteractiveHelpOptions returns a slice of strings containing the help information for fzf selection.
 func (t *Terminal) getInteractiveHelpOptions() []string {
 	options := []string{
 		">all - show all help options",
@@ -452,7 +425,6 @@ func (t *Terminal) getInteractiveHelpOptions() []string {
 	return options
 }
 
-// ShowLoadingAnimation displays a simple loading animation that can be cancelled via context
 func (t *Terminal) ShowLoadingAnimation(ctx context.Context, message string) {
 	if t.config.IsPipedOutput {
 		return
@@ -486,7 +458,6 @@ func (t *Terminal) ShowLoadingAnimation(ctx context.Context, message string) {
 	}
 }
 
-// FzfSelect provides a fuzzy finder interface for selection
 func (t *Terminal) FzfSelect(items []string, prompt string) (string, error) {
 	fzfArgs := []string{"--reverse", "--height=40%", "--border", "--prompt=❯ " + prompt}
 	inputText := strings.Join(items, "\n")
@@ -494,7 +465,6 @@ func (t *Terminal) FzfSelect(items []string, prompt string) (string, error) {
 	return t.runFzfSSHSafe(fzfArgs, inputText)
 }
 
-// FzfMultiSelect provides a fuzzy finder interface for multiple selections
 func (t *Terminal) FzfMultiSelect(items []string, prompt string) ([]string, error) {
 	fzfArgs := []string{"--reverse", "--height=40%", "--border", "--prompt=❯ " + prompt, "--multi", "--bind=tab:toggle+down"}
 	inputText := strings.Join(items, "\n")
@@ -511,7 +481,6 @@ func (t *Terminal) FzfMultiSelect(items []string, prompt string) ([]string, erro
 	return strings.Split(result, "\n"), nil
 }
 
-// FzfMultiSelectExact provides an exact matching fuzzy finder interface for multiple selections
 func (t *Terminal) FzfMultiSelectExact(items []string, prompt string) ([]string, error) {
 	fzfArgs := []string{"--reverse", "--height=40%", "--border", "--prompt=❯ " + prompt, "--multi", "--bind=tab:toggle+down", "--exact"}
 	inputText := strings.Join(items, "\n")
@@ -528,7 +497,6 @@ func (t *Terminal) FzfMultiSelectExact(items []string, prompt string) ([]string,
 	return strings.Split(result, "\n"), nil
 }
 
-// FzfMultiSelectForCLI provides a fuzzy finder interface for multiple selections with cancellation detection
 func (t *Terminal) FzfMultiSelectForCLI(items []string, prompt string) ([]string, error) {
 	fzfArgs := []string{"--reverse", "--height=40%", "--border", "--prompt=❯ " + prompt, "--multi", "--bind=tab:toggle+down"}
 	inputText := strings.Join(items, "\n")
@@ -545,7 +513,6 @@ func (t *Terminal) FzfMultiSelectForCLI(items []string, prompt string) ([]string
 	return strings.Split(result, "\n"), nil
 }
 
-// FzfSelectOrQuery provides a fuzzy finder interface that allows for selection or custom query input.
 func (t *Terminal) FzfSelectOrQuery(items []string, prompt string) (string, error) {
 	fzfArgs := []string{"--reverse", "--height=40%", "--border", "--prompt=❯ " + prompt, "--print-query"}
 	inputText := strings.Join(items, "\n")
@@ -570,7 +537,6 @@ func (t *Terminal) FzfSelectOrQuery(items []string, prompt string) (string, erro
 	return "", nil
 }
 
-// PrintSuccess prints a success message
 func (t *Terminal) PrintSuccess(message string) {
 	if t.config.IsPipedOutput {
 		fmt.Printf("%s\n", message)
@@ -580,7 +546,6 @@ func (t *Terminal) PrintSuccess(message string) {
 	}
 }
 
-// PrintError prints an error message
 func (t *Terminal) PrintError(message string) {
 	if t.config.IsPipedOutput {
 		fmt.Fprintf(os.Stderr, "%s\n", message)
@@ -590,7 +555,6 @@ func (t *Terminal) PrintError(message string) {
 	}
 }
 
-// PrintInfo prints an informational message
 func (t *Terminal) PrintInfo(message string) {
 	if t.config.IsPipedOutput {
 		return
@@ -599,7 +563,6 @@ func (t *Terminal) PrintInfo(message string) {
 	fmt.Printf("%s INFO \033[0m %s\n", theme.InfoBox, message)
 }
 
-// PrintModelSwitch prints model switch confirmation
 func (t *Terminal) PrintModelSwitch(model string) {
 	if t.config.IsPipedOutput {
 		return
@@ -612,7 +575,6 @@ func (t *Terminal) PrintModelSwitch(model string) {
 	fmt.Printf("\033[92m  ○\033[0m \033[1mMODEL UPDATED\033[0m  %s[\033[0m\033[1;96m%s\033[0m%s/\033[0m\033[1;95m%s\033[0m%s%s]\033[0m\n", theme.BorderColor, t.config.CurrentPlatform, theme.BorderColor, model, modeStr, theme.BorderColor)
 }
 
-// PrintPlatformSwitch prints platform switch confirmation
 func (t *Terminal) PrintPlatformSwitch(platform, model string) {
 	if t.config.IsPipedOutput {
 		return
@@ -625,7 +587,6 @@ func (t *Terminal) PrintPlatformSwitch(platform, model string) {
 	fmt.Printf("\033[92m  ○\033[0m \033[1mPLATFORM UPDATED\033[0m  %s[\033[0m\033[1;96m%s\033[0m%s/\033[0m\033[1;95m%s\033[0m%s%s]\033[0m\n", theme.BorderColor, platform, theme.BorderColor, model, modeStr, theme.BorderColor)
 }
 
-// LoadFileContent loads and returns content from selected files/directories or URLs
 func (t *Terminal) LoadFileContent(selections []string) (string, error) {
 	var contentBuilder strings.Builder
 
@@ -667,7 +628,6 @@ func (t *Terminal) LoadFileContent(selections []string) (string, error) {
 	return contentBuilder.String(), nil
 }
 
-// loadTextFile loads content from various file types (text, PDF, DOCX, XLSX, CSV, images)
 func (t *Terminal) loadTextFile(filePath string) (string, error) {
 	ext := strings.ToLower(filepath.Ext(filePath))
 
@@ -711,7 +671,6 @@ func (t *Terminal) loadTextFile(filePath string) (string, error) {
 	return result.String(), nil
 }
 
-// loadDirectoryContent loads content from all text files in a directory
 func (t *Terminal) loadDirectoryContent(dirPath string) (string, error) {
 	var result strings.Builder
 
@@ -740,7 +699,6 @@ func (t *Terminal) loadDirectoryContent(dirPath string) (string, error) {
 	return result.String(), nil
 }
 
-// loadPDF extracts text content from PDF files
 func (t *Terminal) loadPDF(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -776,7 +734,6 @@ func (t *Terminal) loadPDF(filePath string) (string, error) {
 	return content.String(), nil
 }
 
-// loadDOCX extracts text content from DOCX, ODT, and RTF files
 func (t *Terminal) loadDOCX(filePath string) (string, error) {
 	text, err := cat.File(filePath)
 	if err != nil {
@@ -785,7 +742,6 @@ func (t *Terminal) loadDOCX(filePath string) (string, error) {
 	return text, nil
 }
 
-// loadXLSX extracts text content from XLSX files
 func (t *Terminal) loadXLSX(filePath string) (string, error) {
 	workbook, err := xlsx.OpenFile(filePath)
 	if err != nil {
@@ -823,7 +779,6 @@ func (t *Terminal) loadXLSX(filePath string) (string, error) {
 	return content.String(), nil
 }
 
-// loadCSV extracts text content from CSV files
 func (t *Terminal) loadCSV(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -846,7 +801,6 @@ func (t *Terminal) loadCSV(filePath string) (string, error) {
 	return content.String(), nil
 }
 
-// loadImage loads and extracts metadata and basic information from image files
 func (t *Terminal) loadImage(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -881,8 +835,8 @@ func (t *Terminal) loadImage(filePath string) (string, error) {
 		content.WriteString("\nEXIF metadata:\n")
 
 		exifTags := []struct {
-			name string
-			tag  exif.FieldName
+			name	string
+			tag	exif.FieldName
 		}{
 			{"camera make", exif.Make},
 			{"camera model", exif.Model},
@@ -971,7 +925,6 @@ func (t *Terminal) loadImage(filePath string) (string, error) {
 	return content.String(), nil
 }
 
-// convertDMSToDecimal converts degrees-minutes-seconds format to decimal degrees
 func convertDMSToDecimal(dms string) float64 {
 
 	parts := strings.Split(dms, ",")
@@ -994,7 +947,6 @@ func convertDMSToDecimal(dms string) float64 {
 	return degrees + minutes/60.0 + seconds/3600.0
 }
 
-// parseFraction parses a fraction string like "40/1" to a float64
 func parseFraction(fraction string) float64 {
 	parts := strings.Split(fraction, "/")
 	if len(parts) != 2 {
@@ -1014,7 +966,6 @@ func parseFraction(fraction string) float64 {
 	return numerator / denominator
 }
 
-// isTextFile checks if content is likely from a text file
 func (t *Terminal) isTextFile(content []byte) bool {
 	if len(content) == 0 {
 		return true
@@ -1036,7 +987,6 @@ func (t *Terminal) isTextFile(content []byte) bool {
 	return float64(printableCount)/float64(len(content)) > 0.95
 }
 
-// GetCurrentDirFilesRecursive returns all files and directories in the current directory and subdirectories
 func (t *Terminal) GetCurrentDirFilesRecursive() ([]string, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -1045,7 +995,6 @@ func (t *Terminal) GetCurrentDirFilesRecursive() ([]string, error) {
 	return t.GetDirFilesRecursive(currentDir)
 }
 
-// GetDirFilesRecursive returns all files and directories in the specified directory and subdirectories
 func (t *Terminal) GetDirFilesRecursive(targetDir string) ([]string, error) {
 	var items []string
 
@@ -1102,7 +1051,6 @@ func (t *Terminal) GetDirFilesRecursive(targetDir string) ([]string, error) {
 	return items, nil
 }
 
-// CodeDump generates a comprehensive code dump of all text files in the current directory
 func (t *Terminal) CodeDump() (string, error) {
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -1112,7 +1060,6 @@ func (t *Terminal) CodeDump() (string, error) {
 	return t.CodeDumpFromDir(pwd)
 }
 
-// CodeDumpFromDir generates a comprehensive code dump of all text files in the specified directory
 func (t *Terminal) CodeDumpFromDir(targetDir string) (string, error) {
 
 	absDir, err := filepath.Abs(targetDir)
@@ -1136,7 +1083,6 @@ func (t *Terminal) CodeDumpFromDir(targetDir string) (string, error) {
 		return "", fmt.Errorf("failed to get exclusions: %v", err)
 	}
 
-	// Filter out the NONE option if selected
 	var filteredExclusions []string
 	for _, item := range excludedItems {
 		if !strings.HasPrefix(item, ">none") {
@@ -1154,7 +1100,6 @@ func (t *Terminal) CodeDumpFromDir(targetDir string) (string, error) {
 	return t.generateCodeDumpFromDir(includedFiles, absDir)
 }
 
-// CodeDumpFromDirForCLI generates a comprehensive code dump for CLI usage with cancellation detection
 func (t *Terminal) CodeDumpFromDirForCLI(targetDir string) (string, error) {
 
 	absDir, err := filepath.Abs(targetDir)
@@ -1178,7 +1123,6 @@ func (t *Terminal) CodeDumpFromDirForCLI(targetDir string) (string, error) {
 		return "", fmt.Errorf("failed to get exclusions: %v", err)
 	}
 
-	// Filter out the NONE option if selected
 	var filteredExclusions []string
 	for _, item := range excludedItems {
 		if !strings.HasPrefix(item, ">none") {
@@ -1196,7 +1140,6 @@ func (t *Terminal) CodeDumpFromDirForCLI(targetDir string) (string, error) {
 	return t.generateCodeDumpFromDir(includedFiles, absDir)
 }
 
-// discoverFiles finds all text files in the directory, respecting .gitignore
 func (t *Terminal) discoverFiles(rootDir string) ([]string, error) {
 	var allFiles []string
 	var allDirs []string
@@ -1239,7 +1182,6 @@ func (t *Terminal) discoverFiles(rootDir string) ([]string, error) {
 		return nil, err
 	}
 
-	// Combine directories and files for the selection list
 	var combined []string
 	combined = append(combined, allDirs...)
 	combined = append(combined, allFiles...)
@@ -1247,7 +1189,6 @@ func (t *Terminal) discoverFiles(rootDir string) ([]string, error) {
 	return combined, nil
 }
 
-// loadGitignorePatterns loads patterns from .gitignore file if it exists
 func (t *Terminal) loadGitignorePatterns(rootDir string) []string {
 
 	patterns := []string{".git/"}
@@ -1270,7 +1211,6 @@ func (t *Terminal) loadGitignorePatterns(rootDir string) []string {
 	return patterns
 }
 
-// shouldIgnore checks if a path should be ignored based on gitignore patterns
 func (t *Terminal) shouldIgnore(path string, patterns []string) bool {
 	for _, pattern := range patterns {
 		if t.matchesPattern(path, pattern) {
@@ -1280,7 +1220,6 @@ func (t *Terminal) shouldIgnore(path string, patterns []string) bool {
 	return false
 }
 
-// matchesPattern checks if a path matches a gitignore pattern (simplified)
 func (t *Terminal) matchesPattern(path, pattern string) bool {
 
 	pattern = strings.TrimPrefix(pattern, "/")
@@ -1310,32 +1249,31 @@ func (t *Terminal) matchesPattern(path, pattern string) bool {
 	return path == pattern || strings.HasPrefix(path, pattern+"/")
 }
 
-// isTextFileByPath checks if a file is supported based on its path and content
 func (t *Terminal) isTextFileByPath(filePath string) bool {
 
 	ext := strings.ToLower(filepath.Ext(filePath))
 	supportedExtensions := map[string]bool{
 
-		".txt": true, ".md": true, ".go": true, ".py": true, ".js": true,
-		".ts": true, ".jsx": true, ".tsx": true, ".html": true, ".css": true,
-		".scss": true, ".sass": true, ".json": true, ".xml": true, ".yaml": true,
-		".yml": true, ".toml": true, ".ini": true, ".cfg": true, ".conf": true,
-		".sh": true, ".bash": true, ".zsh": true, ".fish": true, ".ps1": true,
-		".bat": true, ".cmd": true, ".dockerfile": true, ".makefile": true,
-		".c": true, ".cpp": true, ".cc": true, ".cxx": true, ".h": true,
-		".hpp": true, ".java": true, ".kt": true, ".scala": true, ".rb": true,
-		".php": true, ".pl": true, ".pm": true, ".r": true, ".sql": true,
-		".vim": true, ".lua": true, ".rs": true, ".swift": true, ".m": true,
-		".mm": true, ".cs": true, ".vb": true, ".fs": true, ".clj": true,
+		".txt":	true, ".md": true, ".go": true, ".py": true, ".js": true,
+		".ts":	true, ".jsx": true, ".tsx": true, ".html": true, ".css": true,
+		".scss":	true, ".sass": true, ".json": true, ".xml": true, ".yaml": true,
+		".yml":	true, ".toml": true, ".ini": true, ".cfg": true, ".conf": true,
+		".sh":	true, ".bash": true, ".zsh": true, ".fish": true, ".ps1": true,
+		".bat":	true, ".cmd": true, ".dockerfile": true, ".makefile": true,
+		".c":	true, ".cpp": true, ".cc": true, ".cxx": true, ".h": true,
+		".hpp":	true, ".java": true, ".kt": true, ".scala": true, ".rb": true,
+		".php":	true, ".pl": true, ".pm": true, ".r": true, ".sql": true,
+		".vim":	true, ".lua": true, ".rs": true, ".swift": true, ".m": true,
+		".mm":	true, ".cs": true, ".vb": true, ".fs": true, ".clj": true,
 
-		".pdf": true, ".docx": true, ".odt": true, ".rtf": true, ".xlsx": true, ".csv": true,
+		".pdf":	true, ".docx": true, ".odt": true, ".rtf": true, ".xlsx": true, ".csv": true,
 
-		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".bmp": true, ".tiff": true, ".tif": true, ".webp": true,
-		".hs": true, ".elm": true, ".ex": true, ".exs": true, ".erl": true,
-		".hrl": true, ".dart": true, ".gradle": true, ".sbt": true,
-		".build": true, ".cmake": true, ".mk": true, ".am": true, ".in": true,
-		".ac": true, ".m4": true, ".spec": true, ".desktop": true, ".service": true,
-		".log": true, ".tsv": true, ".properties": true, ".env": true,
+		".jpg":	true, ".jpeg": true, ".png": true, ".gif": true, ".bmp": true, ".tiff": true, ".tif": true, ".webp": true,
+		".hs":	true, ".elm": true, ".ex": true, ".exs": true, ".erl": true,
+		".hrl":	true, ".dart": true, ".gradle": true, ".sbt": true,
+		".build":	true, ".cmake": true, ".mk": true, ".am": true, ".in": true,
+		".ac":	true, ".m4": true, ".spec": true, ".desktop": true, ".service": true,
+		".log":	true, ".tsv": true, ".properties": true, ".env": true,
 	}
 
 	if supportedExtensions[ext] {
@@ -1353,7 +1291,6 @@ func (t *Terminal) isTextFileByPath(filePath string) bool {
 	return false
 }
 
-// filterExcludedFiles removes excluded files and directories from the list
 func (t *Terminal) filterExcludedFiles(allFiles, excludedItems []string) []string {
 	excludedSet := make(map[string]bool)
 	var excludedDirs []string
@@ -1392,7 +1329,6 @@ func (t *Terminal) filterExcludedFiles(allFiles, excludedItems []string) []strin
 	return includedFiles
 }
 
-// generateCodeDumpFromDir creates the final codedump string from a specific directory
 func (t *Terminal) generateCodeDumpFromDir(files []string, sourceDir string) (string, error) {
 	var result strings.Builder
 
@@ -1448,18 +1384,15 @@ func (t *Terminal) generateCodeDumpFromDir(files []string, sourceDir string) (st
 	return result.String(), nil
 }
 
-// isURL checks if a string is a valid URL
 func (t *Terminal) isURL(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
-// IsURL is a public method to check if a string is a valid URL
 func (t *Terminal) IsURL(str string) bool {
 	return t.isURL(str)
 }
 
-// isYouTubeURL checks if a URL is a YouTube URL
 func (t *Terminal) isYouTubeURL(urlStr string) bool {
 	u, err := url.Parse(urlStr)
 	if err != nil {
@@ -1473,7 +1406,6 @@ func (t *Terminal) isYouTubeURL(urlStr string) bool {
 		strings.Contains(host, "youtube-nocookie.com")
 }
 
-// cleanURL removes backslash escapes from URLs that shells sometimes add
 func (t *Terminal) cleanURL(urlStr string) string {
 
 	cleaned := strings.ReplaceAll(urlStr, `\?`, `?`)
@@ -1482,7 +1414,6 @@ func (t *Terminal) cleanURL(urlStr string) string {
 	return cleaned
 }
 
-// scrapeURL scrapes content from a single URL
 func (t *Terminal) scrapeURL(urlStr string) (string, error) {
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -1492,7 +1423,6 @@ func (t *Terminal) scrapeURL(urlStr string) (string, error) {
 	return t.scrapeURLInternal(urlStr)
 }
 
-// scrapeURLInternal scrapes content from a single URL without animation
 func (t *Terminal) scrapeURLInternal(urlStr string) (string, error) {
 
 	cleanedURL := t.cleanURL(urlStr)
@@ -1527,7 +1457,6 @@ func (t *Terminal) scrapeURLInternal(urlStr string) (string, error) {
 	return result.String(), nil
 }
 
-// scrapeWeb scrapes regular web pages using native Go http and html parsing.
 func (t *Terminal) scrapeWeb(urlStr string) (string, error) {
 	client := &http.Client{
 		Timeout: 30 * time.Second,
@@ -1552,7 +1481,6 @@ func (t *Terminal) scrapeWeb(urlStr string) (string, error) {
 	return t.textContentFromHTML(resp.Body)
 }
 
-// textContentFromHTML extracts readable text from an HTML document body.
 func (t *Terminal) textContentFromHTML(body io.Reader) (string, error) {
 	doc, err := html.Parse(body)
 	if err != nil {
@@ -1600,7 +1528,6 @@ func (t *Terminal) textContentFromHTML(body io.Reader) (string, error) {
 	return strings.TrimSpace(text), nil
 }
 
-// scrapeYouTube scrapes YouTube videos using yt-dlp
 func (t *Terminal) scrapeYouTube(urlStr string) (string, error) {
 	var result strings.Builder
 
@@ -1654,7 +1581,6 @@ func (t *Terminal) scrapeYouTube(urlStr string) (string, error) {
 	return result.String(), nil
 }
 
-// parseYouTubeMetadata extracts key metadata fields from JSON response
 func (t *Terminal) parseYouTubeMetadata(jsonStr string) string {
 	var result strings.Builder
 
@@ -1702,7 +1628,6 @@ func (t *Terminal) parseYouTubeMetadata(jsonStr string) string {
 	return result.String()
 }
 
-// ScrapeURLs scrapes content from multiple URLs
 func (t *Terminal) ScrapeURLs(urls []string) (string, error) {
 	var result strings.Builder
 
@@ -1729,7 +1654,6 @@ func (t *Terminal) ScrapeURLs(urls []string) (string, error) {
 	return result.String(), nil
 }
 
-// WebSearch performs a web search using the Brave Search API
 func (t *Terminal) WebSearch(query string) (string, error) {
 	apiKey := os.Getenv("BRAVE_API_KEY")
 	if apiKey == "" {
@@ -1792,21 +1716,18 @@ func (t *Terminal) WebSearch(query string) (string, error) {
 	return formatted, nil
 }
 
-// BraveSearchResult represents the top-level structure of the Brave Search API response
 type BraveSearchResult struct {
 	Web struct {
 		Results []BraveWebResult `json:"results"`
 	} `json:"web"`
 }
 
-// BraveWebResult represents a single web result from the Brave Search API
 type BraveWebResult struct {
-	Title       string `json:"title"`
-	URL         string `json:"url"`
-	Description string `json:"description"`
+	Title		string	`json:"title"`
+	URL		string	`json:"url"`
+	Description	string	`json:"description"`
 }
 
-// formatBraveSearchResults formats the search results from Brave API
 func (t *Terminal) formatBraveSearchResults(results []BraveWebResult, query string) string {
 	var result strings.Builder
 
@@ -1836,7 +1757,6 @@ func (t *Terminal) formatBraveSearchResults(results []BraveWebResult, query stri
 	return result.String()
 }
 
-// CopyToClipboard copies content to the system clipboard with cross-platform support
 func (t *Terminal) CopyToClipboard(content string) error {
 	var cmd *exec.Cmd
 
@@ -1866,7 +1786,6 @@ func (t *Terminal) CopyToClipboard(content string) error {
 	return cmd.Run()
 }
 
-// CopyResponsesInteractive allows user to select and copy chat responses to clipboard
 func (t *Terminal) CopyResponsesInteractive(chatHistory []types.ChatHistory, messages []types.ChatMessage) error {
 	if len(chatHistory) == 0 {
 		return fmt.Errorf("no chat history available")
@@ -1896,7 +1815,6 @@ func (t *Terminal) CopyResponsesInteractive(chatHistory []types.ChatHistory, mes
 	return t.copyResponsesManual(chatHistory)
 }
 
-// CopyLatestResponseToClipboard copies the latest bot response directly to clipboard
 func (t *Terminal) CopyLatestResponseToClipboard(chatHistory []types.ChatHistory) error {
 	if len(chatHistory) < 2 {
 		return fmt.Errorf("no bot responses available")
@@ -1910,14 +1828,13 @@ func (t *Terminal) CopyLatestResponseToClipboard(chatHistory []types.ChatHistory
 	return t.CopyToClipboard(latestResponse)
 }
 
-// copyResponsesTurn allows user to select user prompts and bot responses to copy
 func (t *Terminal) copyResponsesTurn(chatHistory []types.ChatHistory) error {
-	// Create list of all user prompts and bot responses
+
 	var items []string
 	type replyEntry struct {
-		content string
-		isUser  bool
-		index   int
+		content	string
+		isUser	bool
+		index	int
 	}
 	var entries []replyEntry
 
@@ -1961,7 +1878,6 @@ func (t *Terminal) copyResponsesTurn(chatHistory []types.ChatHistory) error {
 
 	allSelected := ContainsAllOption(selectedItems)
 
-	// Build content from selected items with USER/BOT labels
 	var combinedContent strings.Builder
 	isSingleItem := (allSelected && len(entries) == 1) || (!allSelected && len(selectedItems) == 1)
 
@@ -1982,7 +1898,7 @@ func (t *Terminal) copyResponsesTurn(chatHistory []types.ChatHistory) error {
 			combinedContent.WriteString(entries[i].content)
 		}
 	} else {
-		// Collect matched entries first
+
 		var selectedEntries []replyEntry
 		for _, selected := range selectedItems {
 			for j, item := range items {
@@ -2035,13 +1951,12 @@ func (t *Terminal) copyResponsesTurn(chatHistory []types.ChatHistory) error {
 	return nil
 }
 
-// copyResponsesBlock extracts all code blocks and lets user select individual blocks
 func (t *Terminal) copyResponsesBlock(chatHistory []types.ChatHistory) error {
-	// Extract all code blocks from entire chat history
+
 	type ExtractedBlock struct {
-		Content  string
-		Language string
-		Preview  string
+		Content		string
+		Language	string
+		Preview		string
 	}
 	var blocks []ExtractedBlock
 	var items []string
@@ -2087,7 +2002,6 @@ func (t *Terminal) copyResponsesBlock(chatHistory []types.ChatHistory) error {
 
 	allSelected := ContainsAllOption(selectedItems)
 
-	// Build content from selected blocks
 	var combinedContent strings.Builder
 	if allSelected {
 
@@ -2131,9 +2045,8 @@ func (t *Terminal) copyResponsesBlock(chatHistory []types.ChatHistory) error {
 	return nil
 }
 
-// copyResponsesManual allows user to manually select responses to copy
 func (t *Terminal) copyResponsesManual(chatHistory []types.ChatHistory) error {
-	// Create list of responses for fzf selection (same format as !e)
+
 	var responseOptions []string
 	var responseMap = make(map[string]types.ChatHistory)
 
@@ -2171,7 +2084,6 @@ func (t *Terminal) copyResponsesManual(chatHistory []types.ChatHistory) error {
 
 	allSelected := ContainsAllOption(selected)
 
-	// Combine selected responses
 	var combinedContent strings.Builder
 	if allSelected {
 
@@ -2218,7 +2130,6 @@ func (t *Terminal) copyResponsesManual(chatHistory []types.ChatHistory) error {
 	return nil
 }
 
-// copyResponsesLinks allows user to select and copy URLs to clipboard
 func (t *Terminal) copyResponsesLinks(chatHistory []types.ChatHistory, messages []types.ChatMessage) error {
 
 	urls := t.ExtractURLsFromChatHistory(chatHistory)
@@ -2256,7 +2167,6 @@ func (t *Terminal) copyResponsesLinks(chatHistory []types.ChatHistory, messages 
 
 	allSelected := ContainsAllOption(selectedURLs)
 
-	// Build final content
 	var finalContent string
 	if allSelected {
 		finalContent = strings.Join(urls, " ")
@@ -2281,7 +2191,6 @@ func (t *Terminal) copyResponsesLinks(chatHistory []types.ChatHistory, messages 
 	return nil
 }
 
-// openEditorWithContent opens the preferred editor with given content and returns the edited result
 func (t *Terminal) openEditorWithContent(content string) (string, error) {
 
 	tempDir, err := util.GetTempDir()
@@ -2313,12 +2222,10 @@ func (t *Terminal) openEditorWithContent(content string) (string, error) {
 	return string(editedBytes), nil
 }
 
-// runEditorWithFallback tries to run the user's preferred editor, then falls back to common editors.
 func (t *Terminal) runEditorWithFallback(filePath string) error {
 	return RunEditorWithFallback(t.config, filePath)
 }
 
-// normalizeURL trims trailing punctuation and normalizes URL for deduplication
 func normalizeURL(rawURL string) string {
 
 	cleaned := strings.TrimRight(rawURL, ".,;:!?'\"`)>]}")
@@ -2337,8 +2244,6 @@ func normalizeURL(rawURL string) string {
 	return u.String()
 }
 
-// ExtractURLsFromText extracts all URLs from a given text using regex
-// Normalizes URLs to handle trailing punctuation and variations
 func (t *Terminal) ExtractURLsFromText(text string) []string {
 	matches := urlRegex.FindAllString(text, -1)
 
@@ -2363,7 +2268,6 @@ func (t *Terminal) ExtractURLsFromText(text string) []string {
 	return uniqueURLs
 }
 
-// ExtractURLsFromChatHistory scans the entire chat history and extracts all unique URLs
 func (t *Terminal) ExtractURLsFromChatHistory(chatHistory []types.ChatHistory) []string {
 	var allURLs []string
 	seen := make(map[string]bool)
@@ -2390,7 +2294,6 @@ func (t *Terminal) ExtractURLsFromChatHistory(chatHistory []types.ChatHistory) [
 	return allURLs
 }
 
-// ExtractURLsFromMessages scans all chat messages and extracts all unique URLs
 func (t *Terminal) ExtractURLsFromMessages(messages []types.ChatMessage) []string {
 	var allURLs []string
 	seen := make(map[string]bool)
@@ -2409,7 +2312,6 @@ func (t *Terminal) ExtractURLsFromMessages(messages []types.ChatMessage) []strin
 	return allURLs
 }
 
-// ExtractSentencesFromText extracts all sentences from a given text
 func (t *Terminal) ExtractSentencesFromText(text string) []string {
 
 	rawSentences := sentenceRegex.Split(text, -1)
@@ -2431,7 +2333,6 @@ func (t *Terminal) ExtractSentencesFromText(text string) []string {
 	return sentences
 }
 
-// ExtractSentencesFromChatHistory scans the entire chat history and extracts all unique sentences
 func (t *Terminal) ExtractSentencesFromChatHistory(chatHistory []types.ChatHistory, messages []types.ChatMessage) []string {
 	var allSentences []string
 	seen := make(map[string]bool)

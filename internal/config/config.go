@@ -9,7 +9,6 @@ import (
 	"github.com/fraol163/viren/pkg/types"
 )
 
-// SaveConfigToFile saves the current configuration to config.json
 func SaveConfigToFile(config *types.Config) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -31,7 +30,6 @@ func SaveConfigToFile(config *types.Config) error {
 	return os.WriteFile(configPath, data, 0644)
 }
 
-// loadConfigFromFile loads configuration from config.json in ~/.viren/ directory
 func loadConfigFromFile() (*types.Config, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -62,7 +60,6 @@ func loadConfigFromFile() (*types.Config, error) {
 	return &config, nil
 }
 
-// mergeConfigs merges user config with default config, user config takes precedence
 func mergeConfigs(defaultConfig, userConfig *types.Config) *types.Config {
 	if userConfig.DefaultModel != "" {
 		defaultConfig.DefaultModel = userConfig.DefaultModel
@@ -188,13 +185,24 @@ func mergeConfigs(defaultConfig, userConfig *types.Config) *types.Config {
 	}
 
 	if userConfig.UserProfile.Name != "" {
-		defaultConfig.UserProfile = userConfig.UserProfile
+		defaultConfig.UserProfile.Name = userConfig.UserProfile.Name
+	}
+	if userConfig.UserProfile.Role != "" {
+		defaultConfig.UserProfile.Role = userConfig.UserProfile.Role
+	}
+	if userConfig.UserProfile.Environment != "" {
+		defaultConfig.UserProfile.Environment = userConfig.UserProfile.Environment
+	}
+	if userConfig.UserProfile.Ambition != "" {
+		defaultConfig.UserProfile.Ambition = userConfig.UserProfile.Ambition
+	}
+	if userConfig.UserProfile.Theme != "" {
+		defaultConfig.UserProfile.Theme = userConfig.UserProfile.Theme
 	}
 
 	return defaultConfig
 }
 
-// DefaultConfig returns the default configuration merged with user config from config.json
 func DefaultConfig() *types.Config {
 
 	homeDir, _ := os.UserHomeDir()
@@ -218,125 +226,125 @@ func DefaultConfig() *types.Config {
 	}
 
 	defaultConfig := &types.Config{
-		OpenAIAPIKey:       "",
-		DefaultModel:       "gpt-4.1-mini",
-		CurrentModel:       "gpt-4.1-mini",
-		SystemPrompt:       "You are a helpful assistant powered by Viren who provides concise, clear, and accurate answers. Be brief, but ensure the response fully addresses the question without leaving out important details. Do NOT use em dashes (—) characters ever. But still, do NOT go crazy long with your response if you DON'T HAVE TO. Always return any code or file output in a Markdown code fence, with syntax ```<language or filetype>\n...``` so it can be parsed automatically. Only do this when needed, no need to do this for responses just code segments and/or when directly asked to do so from the user.",
-		ExitKey:            "!q",
-		ModelSwitch:        "!m",
-		EditorInput:        "!t",
-		ClearHistory:       "!c",
-		HelpKey:            "!h",
-		ExportChat:         "!e",
-		Backtrack:          "!b",
-		WebSearch:          "!w",
-		ShowSearchResults:  true,
-		NumSearchResults:   5,
-		SearchCountry:      "us",
-		SearchLang:         "en",
-		ScrapeURL:          "!s",
-		CopyToClipboard:    "!y",
-		QuickCopyLatest:    "cc",
-		LoadFiles:          "!l",
-		AnswerSearch:       "!a",
-		PlatformSwitch:     "!p",
-		AllModels:          "!o",
-		CodeDump:           "!d",
-		ShellRecord:        "!x",
-		ShellOption:        "!x",
-		MultiLine:          "\\",
-		PreferredEditor:    "vim",
-		CurrentPlatform:    "openai",
-		CurrentMode:        "standard",
-		CurrentTheme:       "deepspace",
-		CurrentPersonality: "balanced",
-		MuteNotifications:  false,
-		EnableSessionSave:  true,
-		ShallowLoadDirs:    shallowDirs,
+		OpenAIAPIKey:		"",
+		DefaultModel:		"gpt-4.1-mini",
+		CurrentModel:		"gpt-4.1-mini",
+		SystemPrompt:		"You are a helpful assistant powered by Viren who provides concise, clear, and accurate answers. Be brief, but ensure the response fully addresses the question without leaving out important details. Do NOT use em dashes (—) characters ever. But still, do NOT go crazy long with your response if you DON'T HAVE TO. Always return any code or file output in a Markdown code fence, with syntax ```<language or filetype>\n...``` so it can be parsed automatically. Only do this when needed, no need to do this for responses just code segments and/or when directly asked to do so from the user.",
+		ExitKey:		"!q",
+		ModelSwitch:		"!m",
+		EditorInput:		"!t",
+		ClearHistory:		"!c",
+		HelpKey:		"!h",
+		ExportChat:		"!e",
+		Backtrack:		"!b",
+		WebSearch:		"!w",
+		ShowSearchResults:	true,
+		NumSearchResults:	5,
+		SearchCountry:		"us",
+		SearchLang:		"en",
+		ScrapeURL:		"!s",
+		CopyToClipboard:	"!y",
+		QuickCopyLatest:	"cc",
+		LoadFiles:		"!l",
+		AnswerSearch:		"!a",
+		PlatformSwitch:		"!p",
+		AllModels:		"!o",
+		CodeDump:		"!d",
+		ShellRecord:		"!x",
+		ShellOption:		"!x",
+		MultiLine:		"\\",
+		PreferredEditor:	"vim",
+		CurrentPlatform:	"openai",
+		CurrentMode:		"standard",
+		CurrentTheme:		"deepspace",
+		CurrentPersonality:	"balanced",
+		MuteNotifications:	false,
+		EnableSessionSave:	true,
+		ShallowLoadDirs:	shallowDirs,
 		Platforms: map[string]types.Platform{
 			"groq": {
-				Name:    "groq",
-				BaseURL: types.BaseURLValue{Single: "https://api.groq.com/openai/v1"},
-				EnvName: "GROQ_API_KEY",
+				Name:		"groq",
+				BaseURL:	types.BaseURLValue{Single: "https://api.groq.com/openai/v1"},
+				EnvName:	"GROQ_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://api.groq.com/openai/v1/models",
-					JSONPath: "data.id",
+					URL:		"https://api.groq.com/openai/v1/models",
+					JSONPath:	"data.id",
 				},
 			},
 			"openrouter": {
-				Name:    "openrouter",
-				BaseURL: types.BaseURLValue{Single: "https://openrouter.ai/api/v1"},
-				EnvName: "OPENROUTER_API_KEY",
+				Name:		"openrouter",
+				BaseURL:	types.BaseURLValue{Single: "https://openrouter.ai/api/v1"},
+				EnvName:	"OPENROUTER_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://openrouter.ai/api/v1/models",
-					JSONPath: "data.id",
+					URL:		"https://openrouter.ai/api/v1/models",
+					JSONPath:	"data.id",
 				},
 			},
 			"deepseek": {
-				Name:    "deepseek",
-				BaseURL: types.BaseURLValue{Single: "https://api.deepseek.com"},
-				EnvName: "DEEP_SEEK_API_KEY",
+				Name:		"deepseek",
+				BaseURL:	types.BaseURLValue{Single: "https://api.deepseek.com"},
+				EnvName:	"DEEP_SEEK_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://api.deepseek.com/models",
-					JSONPath: "data.id",
+					URL:		"https://api.deepseek.com/models",
+					JSONPath:	"data.id",
 				},
 			},
 			"anthropic": {
-				Name:    "anthropic",
-				BaseURL: types.BaseURLValue{Single: "https://api.anthropic.com/v1/"},
-				EnvName: "ANTHROPIC_API_KEY",
+				Name:		"anthropic",
+				BaseURL:	types.BaseURLValue{Single: "https://api.anthropic.com/v1/"},
+				EnvName:	"ANTHROPIC_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://api.anthropic.com/v1/models",
-					JSONPath: "data.id",
+					URL:		"https://api.anthropic.com/v1/models",
+					JSONPath:	"data.id",
 				},
 			},
 			"xai": {
-				Name:    "xai",
-				BaseURL: types.BaseURLValue{Single: "https://api.x.ai/v1"},
-				EnvName: "XAI_API_KEY",
+				Name:		"xai",
+				BaseURL:	types.BaseURLValue{Single: "https://api.x.ai/v1"},
+				EnvName:	"XAI_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://api.x.ai/v1/models",
-					JSONPath: "data.id",
+					URL:		"https://api.x.ai/v1/models",
+					JSONPath:	"data.id",
 				},
 			},
 			"ollama": {
-				Name:    "ollama",
-				BaseURL: types.BaseURLValue{Single: "http://127.0.0.1:11434/v1"},
-				EnvName: "ollama",
+				Name:		"ollama",
+				BaseURL:	types.BaseURLValue{Single: "http://127.0.0.1:11434/v1"},
+				EnvName:	"ollama",
 				Models: types.PlatformModels{
-					URL:      "http://127.0.0.1:11434/api/tags",
-					JSONPath: "models.name",
+					URL:		"http://127.0.0.1:11434/api/tags",
+					JSONPath:	"models.name",
 				},
 			},
 			"together": {
-				Name:    "together",
-				BaseURL: types.BaseURLValue{Single: "https://api.together.xyz/v1"},
-				EnvName: "TOGETHER_API_KEY",
+				Name:		"together",
+				BaseURL:	types.BaseURLValue{Single: "https://api.together.xyz/v1"},
+				EnvName:	"TOGETHER_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://api.together.xyz/v1/models",
-					JSONPath: "id",
+					URL:		"https://api.together.xyz/v1/models",
+					JSONPath:	"id",
 				},
 			},
 			"google": {
-				Name:    "google",
-				BaseURL: types.BaseURLValue{Single: "https://generativelanguage.googleapis.com/v1beta/openai/"},
-				EnvName: "GEMINI_API_KEY",
+				Name:		"google",
+				BaseURL:	types.BaseURLValue{Single: "https://generativelanguage.googleapis.com/v1beta/openai/"},
+				EnvName:	"GEMINI_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://generativelanguage.googleapis.com/v1beta/models",
-					JSONPath: "models.name",
+					URL:		"https://generativelanguage.googleapis.com/v1beta/models",
+					JSONPath:	"models.name",
 				},
 			},
 			"mistral": {
-				Name:    "mistral",
-				BaseURL: types.BaseURLValue{Single: "https://api.mistral.ai/v1"},
-				EnvName: "MISTRAL_API_KEY",
+				Name:		"mistral",
+				BaseURL:	types.BaseURLValue{Single: "https://api.mistral.ai/v1"},
+				EnvName:	"MISTRAL_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://api.mistral.ai/v1/models",
-					JSONPath: "data.id",
+					URL:		"https://api.mistral.ai/v1/models",
+					JSONPath:	"data.id",
 				},
 			},
 			"amazon": {
-				Name: "amazon",
+				Name:	"amazon",
 				BaseURL: types.BaseURLValue{
 					Multi: []string{
 						"https://bedrock-runtime.us-west-2.amazonaws.com/openai/v1",
@@ -363,10 +371,10 @@ func DefaultConfig() *types.Config {
 						"https://bedrock-runtime.us-gov-west-1.amazonaws.com/openai/v1",
 					},
 				},
-				EnvName: "AWS_BEDROCK_API_KEY",
+				EnvName:	"AWS_BEDROCK_API_KEY",
 				Models: types.PlatformModels{
-					URL:      "https://bedrock.us-west-2.amazonaws.com/foundation-models",
-					JSONPath: "modelSummaries.modelId",
+					URL:		"https://bedrock.us-west-2.amazonaws.com/foundation-models",
+					JSONPath:	"modelSummaries.modelId",
 				},
 			},
 		},
@@ -388,26 +396,25 @@ func DefaultConfig() *types.Config {
 	return defaultConfig
 }
 
-// InitializeAppState creates and returns initial application state
 func InitializeAppState() *types.AppState {
 	cfg := DefaultConfig()
 
 	state := &types.AppState{
-		Config: cfg,
+		Config:	cfg,
 		Messages: []types.ChatMessage{
 			{Role: "system", Content: cfg.SystemPrompt},
 		},
 		ChatHistory: []types.ChatHistory{
 			{Time: time.Now().Unix(), User: cfg.SystemPrompt, Bot: ""},
 		},
-		CurrentMode:          cfg.CurrentMode,
-		CurrentTheme:         cfg.CurrentTheme,
-		CurrentPersonality:   cfg.CurrentPersonality,
-		RecentlyCreatedFiles: []string{},
-		IsStreaming:          false,
-		StreamingCancel:      nil,
-		IsExecutingCommand:   false,
-		CommandCancel:        nil,
+		CurrentMode:		cfg.CurrentMode,
+		CurrentTheme:		cfg.CurrentTheme,
+		CurrentPersonality:	cfg.CurrentPersonality,
+		RecentlyCreatedFiles:	[]string{},
+		IsStreaming:		false,
+		StreamingCancel:	nil,
+		IsExecutingCommand:	false,
+		CommandCancel:		nil,
 	}
 
 	return state

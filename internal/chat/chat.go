@@ -18,53 +18,46 @@ import (
 	"github.com/google/uuid"
 )
 
-// Manager handles chat operations
 type Manager struct {
 	state *types.AppState
 }
 
-// NewManager creates a new chat manager
 func NewManager(state *types.AppState) *Manager {
 	return &Manager{
 		state: state,
 	}
 }
 
-// AddUserMessage adds a user message to the chat
 func (m *Manager) AddUserMessage(content string) {
 	m.state.Messages = append(m.state.Messages, types.ChatMessage{
-		Role:    "user",
-		Content: content,
+		Role:		"user",
+		Content:	content,
 	})
 }
 
-// AddAssistantMessage adds an assistant message to the chat
 func (m *Manager) AddAssistantMessage(content string) {
 	m.state.Messages = append(m.state.Messages, types.ChatMessage{
-		Role:    "assistant",
-		Content: content,
+		Role:		"assistant",
+		Content:	content,
 	})
 }
 
-// AddToHistory adds an entry to the chat history
 func (m *Manager) AddToHistory(user, bot string) {
 	m.state.ChatHistory = append(m.state.ChatHistory, types.ChatHistory{
-		Time:     time.Now().Unix(),
-		User:     user,
-		Bot:      bot,
-		Platform: m.state.Config.CurrentPlatform,
-		Model:    m.state.Config.CurrentModel,
+		Time:		time.Now().Unix(),
+		User:		user,
+		Bot:		bot,
+		Platform:	m.state.Config.CurrentPlatform,
+		Model:		m.state.Config.CurrentModel,
 	})
 }
 
-// RemoveLastUserMessage removes the last user message (for interrupted requests)
 func (m *Manager) RemoveLastUserMessage() {
 	if len(m.state.Messages) > 0 {
 		m.state.Messages = m.state.Messages[:len(m.state.Messages)-1]
 	}
 }
 
-// ClearHistory clears the chat history
 func (m *Manager) ClearHistory() {
 	m.state.Messages = []types.ChatMessage{
 		{Role: "system", Content: m.state.Config.SystemPrompt},
@@ -74,7 +67,6 @@ func (m *Manager) ClearHistory() {
 	}
 }
 
-// ExportFullHistory exports the entire chat history to a JSON file.
 func (m *Manager) ExportFullHistory() (string, error) {
 	if len(m.state.ChatHistory) <= 1 {
 		return "", fmt.Errorf("no chat history to export")
@@ -94,11 +86,11 @@ func (m *Manager) ExportFullHistory() (string, error) {
 	for _, entry := range m.state.ChatHistory[1:] {
 		if entry.User != "" || entry.Bot != "" {
 			entries = append(entries, types.ExportEntry{
-				Platform:    entry.Platform,
-				ModelName:   entry.Model,
-				UserPrompt:  entry.User,
-				BotResponse: entry.Bot,
-				Timestamp:   entry.Time,
+				Platform:	entry.Platform,
+				ModelName:	entry.Model,
+				UserPrompt:	entry.User,
+				BotResponse:	entry.Bot,
+				Timestamp:	entry.Time,
 			})
 		}
 	}
@@ -118,7 +110,6 @@ func (m *Manager) ExportFullHistory() (string, error) {
 	return fullPath, nil
 }
 
-// ExportLastResponse saves the last bot response to a text file.
 func (m *Manager) ExportLastResponse() (string, error) {
 	if len(m.state.ChatHistory) <= 1 {
 		return "", fmt.Errorf("no chat history to save")
@@ -148,7 +139,6 @@ func (m *Manager) ExportLastResponse() (string, error) {
 	return fullPath, nil
 }
 
-// SaveSessionState saves the current session state to a file with epoch timestamp
 func (m *Manager) SaveSessionState() error {
 	tmpDir, err := util.GetTempDir()
 	if err != nil {
@@ -156,14 +146,14 @@ func (m *Manager) SaveSessionState() error {
 	}
 
 	session := types.SessionFile{
-		Timestamp:    time.Now().Unix(),
-		Platform:     m.state.Config.CurrentPlatform,
-		Model:        m.state.Config.CurrentModel,
-		Mode:         m.state.Config.CurrentMode,
-		Personality:  m.state.CurrentPersonality,
-		SystemPrompt: m.state.Config.SystemPrompt,
-		BaseURL:      m.state.Config.CurrentBaseURL,
-		ChatHistory:  m.state.ChatHistory,
+		Timestamp:	time.Now().Unix(),
+		Platform:	m.state.Config.CurrentPlatform,
+		Model:		m.state.Config.CurrentModel,
+		Mode:		m.state.Config.CurrentMode,
+		Personality:	m.state.CurrentPersonality,
+		SystemPrompt:	m.state.Config.SystemPrompt,
+		BaseURL:	m.state.Config.CurrentBaseURL,
+		ChatHistory:	m.state.ChatHistory,
 	}
 
 	jsonData, err := json.MarshalIndent(session, "", "  ")
@@ -193,7 +183,6 @@ func (m *Manager) SaveSessionState() error {
 	return nil
 }
 
-// LoadLatestSessionState loads the session state from disk
 func (m *Manager) LoadLatestSessionState() (*types.SessionFile, error) {
 	tmpDir, err := util.GetTempDir()
 	if err != nil {
@@ -276,7 +265,6 @@ func (m *Manager) LoadLatestSessionState() (*types.SessionFile, error) {
 	}
 }
 
-// RestoreSessionState restores the application state from a SessionFile
 func (m *Manager) RestoreSessionState(session *types.SessionFile) {
 	m.state.Config.CurrentPlatform = session.Platform
 	m.state.Config.CurrentModel = session.Model
@@ -308,7 +296,6 @@ func (m *Manager) RestoreSessionState(session *types.SessionFile) {
 	config.SaveConfigToFile(m.state.Config)
 }
 
-// LoadCustomHistoryFile loads a session from a custom history file path
 func (m *Manager) LoadCustomHistoryFile(filePath string) (*types.SessionFile, error) {
 
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -320,7 +307,6 @@ func (m *Manager) LoadCustomHistoryFile(filePath string) (*types.SessionFile, er
 		return nil, fmt.Errorf("failed to read history file: %v", err)
 	}
 
-	// Unmarshal the JSON
 	var session types.SessionFile
 	if err := json.Unmarshal(data, &session); err != nil {
 		return nil, fmt.Errorf("failed to parse history file: %v", err)
@@ -329,7 +315,6 @@ func (m *Manager) LoadCustomHistoryFile(filePath string) (*types.SessionFile, er
 	return &session, nil
 }
 
-// ManageSessions manages sessions (search, load, delete) using fzf
 func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.SessionFile, error) {
 	if !m.state.Config.SaveAllSessions {
 		return nil, fmt.Errorf("session management requires save_all_sessions to be enabled in config")
@@ -348,11 +333,10 @@ func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.Sess
 			return nil, fmt.Errorf("no sessions found")
 		}
 
-		// Build list of all entries from all sessions
 		type SessionEntry struct {
-			FilePath  string
-			Preview   string
-			Timestamp int64
+			FilePath	string
+			Preview		string
+			Timestamp	int64
 		}
 		var entries []SessionEntry
 		fileMap := make(map[string]string)
@@ -370,7 +354,6 @@ func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.Sess
 
 			timestamp := time.Unix(session.Timestamp, 0).UTC().Format("2006-01-02 15:04:05")
 
-			// Find the first user message for preview
 			var firstUserMsg string
 			for _, entry := range session.ChatHistory {
 				if entry.User != "" && entry.User != session.SystemPrompt {
@@ -387,9 +370,9 @@ func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.Sess
 
 			preview := fmt.Sprintf("%s | %s | %s", timestamp, session.Model, firstUserMsg)
 			entries = append(entries, SessionEntry{
-				FilePath:  sessionPath,
-				Preview:   preview,
-				Timestamp: session.Timestamp,
+				FilePath:	sessionPath,
+				Preview:	preview,
+				Timestamp:	session.Timestamp,
 			})
 			fileMap[preview] = sessionPath
 		}
@@ -402,7 +385,6 @@ func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.Sess
 			return entries[i].Timestamp > entries[j].Timestamp
 		})
 
-		// Build fzf input
 		var fzfInput strings.Builder
 		for _, entry := range entries {
 			fzfInput.WriteString(entry.Preview + "\n")
@@ -435,7 +417,6 @@ func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.Sess
 			return nil, fmt.Errorf("no selection made")
 		}
 
-		// Map selections to file paths
 		var selectedFiles []string
 		for _, line := range selectedLines {
 			if path, ok := fileMap[line]; ok {
@@ -486,8 +467,6 @@ func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.Sess
 	}
 }
 
-// BacktrackHistory allows the user to select a previous message to revert to.
-// It returns the number of messages that were backtracked.
 func (m *Manager) BacktrackHistory(terminal *ui.Terminal) (int, error) {
 	if len(m.state.ChatHistory) <= 1 {
 		return 0, fmt.Errorf("no history to backtrack")
@@ -552,8 +531,6 @@ func (m *Manager) BacktrackHistory(terminal *ui.Terminal) (int, error) {
 	return backtrackedCount, nil
 }
 
-// HandleTerminalInput handles terminal input mode
-// HandleTerminalInput handles terminal input mode with a specific editor
 func (m *Manager) HandleTerminalInput(chosenEditor string) (string, error) {
 	tmpDir, err := util.GetTempDir()
 	if err != nil {
@@ -592,37 +569,30 @@ func (m *Manager) HandleTerminalInput(chosenEditor string) (string, error) {
 	return input, nil
 }
 
-// GetMessages returns the current messages
 func (m *Manager) GetMessages() []types.ChatMessage {
 	return m.state.Messages
 }
 
-// GetChatHistory returns the current chat history
 func (m *Manager) GetChatHistory() []types.ChatHistory {
 	return m.state.ChatHistory
 }
 
-// GetCurrentModel returns the current model
 func (m *Manager) GetCurrentModel() string {
 	return m.state.Config.CurrentModel
 }
 
-// SetCurrentModel sets the current model
 func (m *Manager) SetCurrentModel(model string) {
 	m.state.Config.CurrentModel = model
 }
 
-// GetCurrentPlatform returns the current platform
 func (m *Manager) GetCurrentPlatform() string {
 	return m.state.Config.CurrentPlatform
 }
 
-// SetCurrentPlatform sets the current platform
 func (m *Manager) SetCurrentPlatform(platform string) {
 	m.state.Config.CurrentPlatform = platform
 }
 
-// ExportCodeBlocks extracts and saves all code blocks from the last bot response
 func (m *Manager) ExportCodeBlocks(terminal *ui.Terminal) ([]string, error) {
 	if len(m.state.ChatHistory) <= 1 {
 		return nil, fmt.Errorf("no chat history available")
@@ -679,7 +649,6 @@ func (m *Manager) ExportCodeBlocks(terminal *ui.Terminal) ([]string, error) {
 	return filePaths, nil
 }
 
-// ExportChatInteractive allows user to select chat entries via fzf, edit in text editor, and save
 func (m *Manager) ExportChatInteractive(terminal *ui.Terminal, targetFile string) (string, error) {
 	if len(m.state.ChatHistory) <= 1 {
 		return "", fmt.Errorf("no chat history to export")
@@ -702,7 +671,6 @@ func (m *Manager) ExportChatInteractive(terminal *ui.Terminal, targetFile string
 		return "", nil
 	}
 
-	// Prepare chat entries for fzf selection (newest to oldest)
 	var items []string
 	var chatEntries []types.ChatHistory
 
@@ -773,7 +741,6 @@ func (m *Manager) ExportChatInteractive(terminal *ui.Terminal, targetFile string
 		return "", fmt.Errorf("no valid entries found")
 	}
 
-	// Build content for editing
 	var contentBuilder strings.Builder
 	for i, entry := range selectedEntries {
 		if i > 0 {
@@ -868,9 +835,8 @@ func (m *Manager) ExportChatInteractive(terminal *ui.Terminal, targetFile string
 	return "", nil
 }
 
-// ExportChatBlock allows user to extract and save code blocks from chat history
 func (m *Manager) ExportChatBlock(terminal *ui.Terminal, targetFile string) (string, error) {
-	// Step 1: Create list of chat entries for fzf selection (same format as manual mode)
+
 	var items []string
 	var chatEntries []types.ChatHistory
 
@@ -903,10 +869,9 @@ func (m *Manager) ExportChatBlock(terminal *ui.Terminal, targetFile string) (str
 		return "", fmt.Errorf("no entries selected")
 	}
 
-	// Step 3: Parse selected indices and extract code blocks
 	type ExtractedSnippet struct {
-		Content  string
-		Language string
+		Content		string
+		Language	string
 	}
 	var selectedSnippets []ExtractedSnippet
 	codeBlockRegex := regexp.MustCompile("(?s)```([a-zA-Z0-9]*)\n(.*?)\n```")
@@ -984,7 +949,6 @@ func (m *Manager) ExportChatBlock(terminal *ui.Terminal, targetFile string) (str
 		return "", nil
 	}
 
-	// Step 4 & 5: Get filename and save files for each snippet
 	var savedFiles []string
 
 	allFiles, err := m.getAllFilesInCurrentDir()
@@ -1034,14 +998,13 @@ func (m *Manager) ExportChatBlock(terminal *ui.Terminal, targetFile string) (str
 	return "", nil
 }
 
-// ExportChatTurn allows user to select individual prompts and responses to export
 func (m *Manager) ExportChatTurn(terminal *ui.Terminal, targetFile string) (string, error) {
-	// Create list of all user prompts and bot responses
+
 	var items []string
 	type turnEntry struct {
-		content string
-		isUser  bool
-		index   int
+		content	string
+		isUser	bool
+		index	int
 	}
 	var entries []turnEntry
 
@@ -1084,7 +1047,6 @@ func (m *Manager) ExportChatTurn(terminal *ui.Terminal, targetFile string) (stri
 
 	allSelected := ui.ContainsAllOption(selectedItems)
 
-	// Build content from selected items with USER/BOT labels
 	var combinedContent strings.Builder
 	if allSelected {
 
@@ -1100,7 +1062,7 @@ func (m *Manager) ExportChatTurn(terminal *ui.Terminal, targetFile string) (stri
 			combinedContent.WriteString(entries[i].content)
 		}
 	} else {
-		// Collect matched entries first
+
 		var selectedEntries []turnEntry
 		for _, selected := range selectedItems {
 			for j, item := range items {
@@ -1198,13 +1160,10 @@ func (m *Manager) ExportChatTurn(terminal *ui.Terminal, targetFile string) (stri
 	return "", nil
 }
 
-// createUnifiedFileOptions creates a single list of filename options for fzf,
-// interleaving suggested new files and existing files for better prioritization.
 func (m *Manager) createUnifiedFileOptions(priorityExt string, suggestedFilenames, allFiles, loadedFiles, recentlyCreated []string) []string {
 	var options []string
 	seen := make(map[string]bool)
 
-	// --- Step 1: Separate suggested files ---
 	var suggestedMatching, suggestedOther []string
 	for _, file := range suggestedFilenames {
 
@@ -1215,7 +1174,6 @@ func (m *Manager) createUnifiedFileOptions(priorityExt string, suggestedFilename
 		}
 	}
 
-	// --- Step 2: Build prioritized lists of existing files ---
 	var existingMatching, existingOther []string
 	seenExisting := make(map[string]bool)
 
@@ -1226,7 +1184,6 @@ func (m *Manager) createUnifiedFileOptions(priorityExt string, suggestedFilename
 		}
 	}
 
-	// Get all non-directory files
 	var allNonDirFiles []string
 	for _, file := range allFiles {
 		if !strings.HasSuffix(file, "/") {
@@ -1294,7 +1251,6 @@ func (m *Manager) createUnifiedFileOptions(priorityExt string, suggestedFilename
 	return options
 }
 
-// generatePrioritizedFilenameOptions creates filename options, prioritizing the correct extension.
 func (m *Manager) generatePrioritizedFilenameOptions(content, priorityExt string) []string {
 	allOptions := m.generateFilenameOptions(content)
 	var prioritizedOptions, otherOptions []string
@@ -1310,7 +1266,6 @@ func (m *Manager) generatePrioritizedFilenameOptions(content, priorityExt string
 	return append(prioritizedOptions, otherOptions...)
 }
 
-// openInEditor opens content in the user's preferred text editor and returns the edited content
 func (m *Manager) openInEditor(content string) (string, error) {
 	tmpDir, err := util.GetTempDir()
 	if err != nil {
@@ -1346,31 +1301,30 @@ func (m *Manager) openInEditor(content string) (string, error) {
 	return string(editedContent), nil
 }
 
-// getLanguageExtension maps language identifiers to file extensions
 func (m *Manager) getLanguageExtension(language string) string {
 	langMap := map[string]string{
-		"python": "py", "py": "py",
-		"javascript": "js", "js": "js",
-		"typescript": "ts", "ts": "ts",
-		"go":   "go",
-		"java": "java",
-		"c":    "c",
-		"cpp":  "cpp", "c++": "cpp",
-		"csharp": "cs", "cs": "cs",
-		"ruby": "rb", "rb": "rb",
-		"php":    "php",
-		"swift":  "swift",
-		"kotlin": "kt",
-		"rust":   "rs", "rs": "rs",
-		"html": "html",
-		"css":  "css",
-		"json": "json",
-		"yaml": "yaml", "yml": "yaml",
-		"markdown": "md", "md": "md",
-		"shell": "sh", "sh": "sh", "bash": "sh",
-		"sql":        "sql",
-		"dockerfile": "Dockerfile",
-		"makefile":   "Makefile",
+		"python":	"py", "py": "py",
+		"javascript":	"js", "js": "js",
+		"typescript":	"ts", "ts": "ts",
+		"go":	"go",
+		"java":	"java",
+		"c":	"c",
+		"cpp":	"cpp", "c++": "cpp",
+		"csharp":	"cs", "cs": "cs",
+		"ruby":	"rb", "rb": "rb",
+		"php":		"php",
+		"swift":	"swift",
+		"kotlin":	"kt",
+		"rust":		"rs", "rs": "rs",
+		"html":	"html",
+		"css":	"css",
+		"json":	"json",
+		"yaml":	"yaml", "yml": "yaml",
+		"markdown":	"md", "md": "md",
+		"shell":	"sh", "sh": "sh", "bash": "sh",
+		"sql":		"sql",
+		"dockerfile":	"Dockerfile",
+		"makefile":	"Makefile",
 	}
 	if ext, ok := langMap[strings.ToLower(language)]; ok {
 		return "." + ext
@@ -1378,7 +1332,6 @@ func (m *Manager) getLanguageExtension(language string) string {
 	return ".txt"
 }
 
-// generateFilenameOptions creates filename options with viren_<hash>.ext format
 func (m *Manager) generateFilenameOptions(content string) []string {
 	var options []string
 	currentDir, _ := os.Getwd()
@@ -4728,7 +4681,6 @@ func (m *Manager) generateFilenameOptions(content string) []string {
 	return options
 }
 
-// generateUniqueFilename creates a unique filename by handling collisions
 func (m *Manager) generateUniqueFilename(currentDir, baseHash, ext, content string) string {
 	filename := fmt.Sprintf("viren_%s%s", baseHash, ext)
 	fullPath := filepath.Join(currentDir, filename)
@@ -4763,7 +4715,6 @@ func (m *Manager) generateUniqueFilename(currentDir, baseHash, ext, content stri
 	return filename
 }
 
-// hasFilesWithPattern checks if any files exist with the given pattern
 func (m *Manager) hasFilesWithPattern(currentDir, pattern string) bool {
 	files, err := os.ReadDir(currentDir)
 	if err != nil {
@@ -4778,7 +4729,6 @@ func (m *Manager) hasFilesWithPattern(currentDir, pattern string) bool {
 	return false
 }
 
-// getAllFilesInCurrentDir returns all files in the current directory and subdirectories
 func (m *Manager) getAllFilesInCurrentDir() ([]string, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -4838,8 +4788,6 @@ func (m *Manager) getAllFilesInCurrentDir() ([]string, error) {
 	return files, nil
 }
 
-// AddRecentlyCreatedFile adds a file to the recently created files list
-// Keeps the list limited to the last 10 files for performance
 func (m *Manager) AddRecentlyCreatedFile(filePath string) {
 
 	if currentDir, err := os.Getwd(); err == nil {
@@ -4848,7 +4796,6 @@ func (m *Manager) AddRecentlyCreatedFile(filePath string) {
 		}
 	}
 
-	// Remove duplicates and add to front
 	var updatedFiles []string
 	updatedFiles = append(updatedFiles, filePath)
 
@@ -4861,8 +4808,6 @@ func (m *Manager) AddRecentlyCreatedFile(filePath string) {
 	m.state.RecentlyCreatedFiles = updatedFiles
 }
 
-// extractLoadedFilesFromHistory extracts all files that have been loaded from the chat history
-// Returns them in reverse chronological order (most recently loaded first)
 func (m *Manager) extractLoadedFilesFromHistory() []string {
 	var loadedFiles []string
 	seen := make(map[string]bool)
@@ -4908,7 +4853,6 @@ func (m *Manager) extractLoadedFilesFromHistory() []string {
 	return loadedFiles
 }
 
-// fileExistsInCurrentDir checks if a file exists in the current directory structure
 func (m *Manager) fileExistsInCurrentDir(filePath string) bool {
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -4929,8 +4873,6 @@ func (m *Manager) fileExistsInCurrentDir(filePath string) bool {
 	return false
 }
 
-// getLoadedContentForHistoryEntry attempts to retrieve the actual loaded file content
-// for a history entry that contains "loaded: ..." by matching it with the corresponding message
 func (m *Manager) getLoadedContentForHistoryEntry(historyEntry types.ChatHistory) string {
 
 	for _, message := range m.state.Messages {
@@ -4945,7 +4887,6 @@ func (m *Manager) getLoadedContentForHistoryEntry(historyEntry types.ChatHistory
 	return ""
 }
 
-// messageContainsLoadedFiles checks if a message content contains files mentioned in a "loaded: ..." history entry
 func (m *Manager) messageContainsLoadedFiles(messageContent, historyEntry string) bool {
 	if !strings.HasPrefix(historyEntry, "loaded: ") {
 		return false
@@ -4969,7 +4910,6 @@ func (m *Manager) messageContainsLoadedFiles(messageContent, historyEntry string
 	return len(files) > 0 && matchCount >= (len(files)+1)/2
 }
 
-// cleanupLoadedContent removes excessive newlines from loaded file content for cleaner exports
 func (m *Manager) cleanupLoadedContent(content string) string {
 
 	content = strings.TrimRight(content, "\n")

@@ -4,14 +4,12 @@ import (
 	"math/rand"
 )
 
-// GenerateHashFromContent creates a random hash using characters from the content
 func GenerateHashFromContent(content string, length int) string {
 	return GenerateHashFromContentWithOffset(content, length, 0)
 }
 
-// GenerateHashFromContentWithOffset creates a hash with an offset for collision avoidance
 func GenerateHashFromContentWithOffset(content string, length, offset int) string {
-	// Extract alphanumeric characters from content
+
 	var charset []rune
 	for _, char := range content {
 		if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || (char >= '0' && char <= '9') {

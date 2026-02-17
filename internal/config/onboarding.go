@@ -10,7 +10,6 @@ import (
 	"github.com/fraol163/viren/pkg/types"
 )
 
-// RunOnboarding runs the first-time setup wizard
 func RunOnboarding(terminal *ui.Terminal, cfg *types.Config) error {
 	terminal.ClearTerminal()
 	terminal.ShowLogo()
@@ -82,13 +81,13 @@ func RunOnboarding(terminal *ui.Terminal, cfg *types.Config) error {
 	cfg.SystemPrompt = "VIREN SYSTEM ARCHITECTURE: Integrated Intelligence Layer\n\nYou must perfectly blend the following Domain Mode and Personality Mandate into a single, cohesive persona.\n\n--- DOMAIN MODE ---\nBalanced conversation with professional tone.\n\n"
 
 	pMap := map[string]string{
-		"analytical": "Logical, systematic, and data-driven.",
-		"creative":   "Artistic, imaginative, and metaphor-heavy.",
-		"focused":    "Goal-oriented, concise, and productivity-focused.",
-		"empathetic": "Emotionally intelligent and supportive.",
-		"playful":    "Fun, energetic, and full of wit.",
-		"balanced":   "Versatile and adaptive.",
-		"rick":       "Rick Sanchez from C-137. Cynical, scientifically brilliant, and sarcastic.",
+		"analytical":	"Logical, systematic, and data-driven.",
+		"creative":	"Artistic, imaginative, and metaphor-heavy.",
+		"focused":	"Goal-oriented, concise, and productivity-focused.",
+		"empathetic":	"Emotionally intelligent and supportive.",
+		"playful":	"Fun, energetic, and full of wit.",
+		"balanced":	"Versatile and adaptive.",
+		"rick":		"Rick Sanchez from C-137. Cynical, scientifically brilliant, and sarcastic.",
 	}
 	if mandate, ok := pMap[cfg.CurrentPersonality]; ok {
 		cfg.SystemPrompt += "--- PERSONALITY MANDATE ---\n" + mandate + "\n\n"
@@ -105,7 +104,6 @@ func RunOnboarding(terminal *ui.Terminal, cfg *types.Config) error {
 	return SaveConfig(cfg)
 }
 
-// SaveConfig writes the configuration to disk
 func SaveConfig(cfg *types.Config) error {
 	return SaveConfigToFile(cfg)
 }

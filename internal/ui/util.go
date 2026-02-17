@@ -9,7 +9,6 @@ import (
 	"github.com/fraol163/viren/pkg/types"
 )
 
-// GetAvailableEditors returns a list of installed editors based on the operating system
 func GetAvailableEditors(cfg *types.Config) []string {
 	var potentialEditors []string
 
@@ -46,7 +45,6 @@ func GetAvailableEditors(cfg *types.Config) []string {
 	return available
 }
 
-// RunSpecificEditor runs a chosen editor on a file
 func RunSpecificEditor(editor string, filePath string) error {
 	var cmd *exec.Cmd
 
@@ -63,7 +61,6 @@ func RunSpecificEditor(editor string, filePath string) error {
 	return cmd.Run()
 }
 
-// RunEditorWithFallback tries to run the user's preferred editor, then falls back to common editors.
 func RunEditorWithFallback(cfg *types.Config, filePath string) error {
 	editors := GetAvailableEditors(cfg)
 	if len(editors) == 0 {

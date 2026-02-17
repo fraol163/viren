@@ -18,6 +18,10 @@
   <strong>Unleashing elite machine intelligence directly into your terminal environment.</strong>
 </p>
 
+<p align="center">
+  <img src="image/Screenshot_2026-02-17_19-43-46.png" alt="Viren CLI Interface" width="800"/>
+</p>
+
 ---
 
 ## 1. What is Viren?

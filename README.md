@@ -18,9 +18,7 @@
   <strong>Unleashing elite machine intelligence directly into your terminal environment.</strong>
 </p>
 
-<p align="center">
-  <img src="image/Screenshot_2026-02-17_19-43-46.png" alt="Viren CLI Interface" width="800"/>
-</p>
+
 
 ---
 
@@ -75,6 +73,10 @@ As the spiritual successor to the **Cha** project, Viren takes the interactive A
 Viren is engineered for the "Flow State." Developers spend their lives in the terminal; switching to a Chrome tab to ask an AI about a specific bug breaks the neural loop of coding. Viren brings the AI to the code.
 
 By leveraging Go's native concurrency and efficient memory management, Viren can handle massive codebases (via the Codedump feature) and inject them into the context window of elite models like Claude 3.5 Sonnet or GPT-4o. It acts as a "Universal API Translator," allowing you to switch between 11+ providers and 40+ specialized logic modes with a single command.
+
+<p align="center">
+  <img src="image/Screenshot_2026-02-17_19-43-46.png" alt="Viren CLI Interface" width="800"/>
+</p>
 
 ---
 

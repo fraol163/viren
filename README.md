@@ -12,7 +12,7 @@
 
 # Virtual Enginner
 
-<p align="center"> <strong>The Advanced Neural Command Interface</strong></p>
+<p align="center"> <strong>The Advanced Neural Command Interface which means a specialized AI-driven command-line assistant designed to bridge the gap between natural language intent and complex terminal execution.</strong></p>
 
 <p align="center">
   <strong>Unleashing elite machine intelligence directly into your terminal environment.</strong>

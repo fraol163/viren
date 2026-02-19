@@ -295,21 +295,15 @@ build_viren() {
 
 check_tesseract_libs() {
 	if command -v pkg-config >/dev/null 2>&1; then
-		if pkg-config --exists tesseract lept 2>/dev/null; then
-			return 0
-		fi
+		pkg-config --exists tesseract lept 2>/dev/null && return 0
 	fi
 	for dir in /usr/include /usr/local/include; do
-		if [[ -f "${dir}/leptonica/allheaders.h" ]]; then
-			return 0
-		fi
+		[[ -f "${dir}/leptonica/allheaders.h" ]] && return 0
 	done
 	if command -v brew >/dev/null 2>&1; then
 		local bp
 		bp=$(brew --prefix 2>/dev/null || true)
-		if [[ -n "$bp" ]] && [[ -f "${bp}/include/leptonica/allheaders.h" ]]; then
-			return 0
-		fi
+		[[ -n "$bp" ]] && [[ -f "${bp}/include/leptonica/allheaders.h" ]] && return 0
 	fi
 	return 1
 }

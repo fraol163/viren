@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21
+      
+      - name: Build binaries
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o bin/viren_linux_amd64 ./cmd/viren
+          GOOS=linux GOARCH=arm64 go build -o bin/viren_linux_arm64 ./cmd/viren
+          GOOS=darwin GOARCH=amd64 go build -o bin/viren_darwin_amd64 ./cmd/viren
+          GOOS=darwin GOARCH=arm64 go build -o bin/viren_darwin_arm64 ./cmd/viren
+          GOOS=windows GOARCH=amd64 go build -o bin/viren_windows_amd64.exe ./cmd/viren
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bin/viren_linux_amd64
+            bin/viren_linux_arm64
+            bin/viren_darwin_amd64
+            bin/viren_darwin_arm64
+            bin/viren_windows_amd64.exe
+          body: |
+            ## What's New
+            
+            - Feature 1
+            - Feature 2
+            - Bug fixes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

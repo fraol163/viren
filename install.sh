@@ -4,7 +4,7 @@ set -euo pipefail
 
 VIREN_HOME="$HOME/.viren"
 BIN_DIR="$VIREN_HOME/bin"
-REPO_URL="https://github.com/MehmetMHY/ch.git"
+REPO_URL="https://github.com/fraol163/viren.git"
 
 log() {
 	echo -e "\033[96m$1\033[0m"
@@ -19,7 +19,7 @@ warning() {
 	echo -e "\033[93mWarning: $1\033[0m"
 }
 
-uninstall_ch() {
+uninstall_viren() {
 	echo -e "\033[91mRemoving Viren installation...\033[0m"
 
 	local os
@@ -55,7 +55,7 @@ uninstall_ch() {
 	exit 0
 }
 
-safe_uninstall_ch() {
+safe_uninstall_viren() {
 	log "Viren Safe Uninstaller"
 	echo -e "\033[93mThis will remove the following:\033[0m"
 	echo -e "\033[93m- Config, history, & sessions: $VIREN_HOME\033[0m"
@@ -78,7 +78,7 @@ safe_uninstall_ch() {
 		exit 0
 	fi
 
-	uninstall_ch
+	uninstall_viren
 }
 
 check_go() {
@@ -721,10 +721,10 @@ main() {
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
 		-u | --uninstall)
-			uninstall_ch
+			uninstall_viren
 			;;
 		-s | --safe-uninstall)
-			safe_uninstall_ch
+			safe_uninstall_viren
 			;;
 		-b | --build)
 			if [[ "$is_remote_install" == true ]]; then

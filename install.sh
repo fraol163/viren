@@ -294,16 +294,17 @@ build_viren() {
 }
 
 check_tesseract_libs() {
+	# Check if tesseract and leptonica are available
 	if command -v pkg-config >/dev/null 2>&1; then
 		pkg-config --exists tesseract lept 2>/dev/null && return 0
 	fi
-	for dir in /usr/include /usr/local/include; do
-		[[ -f "${dir}/leptonica/allheaders.h" ]] && return 0
-	done
+	# Check common include paths
+	test -f /usr/include/leptonica/allheaders.h && return 0
+	test -f /usr/local/include/leptonica/allheaders.h && return 0
+	# Check Homebrew on macOS
 	if command -v brew >/dev/null 2>&1; then
-		local bp
-		bp=$(brew --prefix 2>/dev/null || true)
-		[[ -n "$bp" ]] && [[ -f "${bp}/include/leptonica/allheaders.h" ]] && return 0
+		bp=$(brew --prefix 2>/dev/null) || bp=""
+		test -n "$bp" && test -f "${bp}/include/leptonica/allheaders.h" && return 0
 	fi
 	return 1
 }

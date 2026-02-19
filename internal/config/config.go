@@ -159,6 +159,40 @@ func mergeConfigs(defaultConfig, userConfig *types.Config) *types.Config {
 		defaultConfig.CurrentPersonality = userConfig.CurrentPersonality
 	}
 
+	if userConfig.Regenerate != "" {
+		defaultConfig.Regenerate = userConfig.Regenerate
+	}
+	if userConfig.ExplainCode != "" {
+		defaultConfig.ExplainCode = userConfig.ExplainCode
+	}
+	if userConfig.Summarize != "" {
+		defaultConfig.Summarize = userConfig.Summarize
+	}
+	if userConfig.GenerateTests != "" {
+		defaultConfig.GenerateTests = userConfig.GenerateTests
+	}
+	if userConfig.GenerateDocs != "" {
+		defaultConfig.GenerateDocs = userConfig.GenerateDocs
+	}
+	if userConfig.OptimizeCode != "" {
+		defaultConfig.OptimizeCode = userConfig.OptimizeCode
+	}
+	if userConfig.GitCommand != "" {
+		defaultConfig.GitCommand = userConfig.GitCommand
+	}
+	if userConfig.CompareFiles != "" {
+		defaultConfig.CompareFiles = userConfig.CompareFiles
+	}
+	if userConfig.TranslateCode != "" {
+		defaultConfig.TranslateCode = userConfig.TranslateCode
+	}
+	if userConfig.FindReplace != "" {
+		defaultConfig.FindReplace = userConfig.FindReplace
+	}
+	if userConfig.CommandReference != "" {
+		defaultConfig.CommandReference = userConfig.CommandReference
+	}
+
 	if userConfig.DefaultModel != "" || userConfig.CurrentPlatform != "" || userConfig.SystemPrompt != "" || userConfig.ShowSearchResults {
 		defaultConfig.ShowSearchResults = userConfig.ShowSearchResults
 	}
@@ -226,120 +260,132 @@ func DefaultConfig() *types.Config {
 	}
 
 	defaultConfig := &types.Config{
-		OpenAIAPIKey:		"",
-		DefaultModel:		"gpt-4.1-mini",
-		CurrentModel:		"gpt-4.1-mini",
-		SystemPrompt:		"You are a helpful assistant powered by Viren who provides concise, clear, and accurate answers. Be brief, but ensure the response fully addresses the question without leaving out important details. Do NOT use em dashes (—) characters ever. But still, do NOT go crazy long with your response if you DON'T HAVE TO. Always return any code or file output in a Markdown code fence, with syntax ```<language or filetype>\n...``` so it can be parsed automatically. Only do this when needed, no need to do this for responses just code segments and/or when directly asked to do so from the user.",
-		ExitKey:		"!q",
-		ModelSwitch:		"!m",
-		EditorInput:		"!t",
-		ClearHistory:		"!c",
-		HelpKey:		"!h",
-		ExportChat:		"!e",
-		Backtrack:		"!b",
-		WebSearch:		"!w",
+		OpenAIAPIKey:	"",
+		DefaultModel:	"gpt-4.1-mini",
+		CurrentModel:	"gpt-4.1-mini",
+		SystemPrompt:	"You are a helpful assistant powered by Viren who provides concise, clear, and accurate answers. Be brief, but ensure the response fully addresses the question without leaving out important details. Do NOT use em dashes (—) characters ever. But still, do NOT go crazy long with your response if you DON'T HAVE TO. Always return any code or file output in a Markdown code fence, with syntax ```<language or filetype>\n...``` so it can be parsed automatically. Only do this when needed, no need to do this for responses just code segments and/or when directly asked to do so from the user.",
+		ExitKey:	"!q",
+		ModelSwitch:	"!m",
+		EditorInput:	"!t",
+		ClearHistory:	"!c",
+		HelpKey:	"!h",
+		ExportChat:	"!e",
+		Backtrack:	"!b",
+		WebSearch:	"!w",
 		ShowSearchResults:	true,
 		NumSearchResults:	5,
-		SearchCountry:		"us",
-		SearchLang:		"en",
-		ScrapeURL:		"!s",
+		SearchCountry:	"us",
+		SearchLang:	"en",
+		ScrapeURL:	"!s",
 		CopyToClipboard:	"!y",
 		QuickCopyLatest:	"cc",
-		LoadFiles:		"!l",
-		AnswerSearch:		"!a",
-		PlatformSwitch:		"!p",
-		AllModels:		"!o",
-		CodeDump:		"!d",
-		ShellRecord:		"!x",
-		ShellOption:		"!x",
-		MultiLine:		"\\",
+		LoadFiles:	"!l",
+		AnswerSearch:	"!a",
+		PlatformSwitch:	"!p",
+		AllModels:	"!o",
+		CodeDump:	"!d",
+		ShellRecord:	"!x",
+		ShellOption:	"!x",
+		MultiLine:	"\\",
 		PreferredEditor:	"vim",
 		CurrentPlatform:	"openai",
-		CurrentMode:		"standard",
-		CurrentTheme:		"deepspace",
+		CurrentMode:	"standard",
+		CurrentTheme:	"deepspace",
 		CurrentPersonality:	"balanced",
 		MuteNotifications:	false,
 		EnableSessionSave:	true,
 		ShallowLoadDirs:	shallowDirs,
+
+		Regenerate:	"!r",
+		ExplainCode:	"!explain",
+		Summarize:	"!summarize",
+		GenerateTests:	"!test",
+		GenerateDocs:	"!doc",
+		OptimizeCode:	"!optimize",
+		GitCommand:	"!git",
+		CompareFiles:	"!compare",
+		TranslateCode:	"!translate",
+		FindReplace:	"!f",
+		CommandReference:	"!cmd",
 		Platforms: map[string]types.Platform{
 			"groq": {
-				Name:		"groq",
+				Name:	"groq",
 				BaseURL:	types.BaseURLValue{Single: "https://api.groq.com/openai/v1"},
 				EnvName:	"GROQ_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://api.groq.com/openai/v1/models",
+					URL:	"https://api.groq.com/openai/v1/models",
 					JSONPath:	"data.id",
 				},
 			},
 			"openrouter": {
-				Name:		"openrouter",
+				Name:	"openrouter",
 				BaseURL:	types.BaseURLValue{Single: "https://openrouter.ai/api/v1"},
 				EnvName:	"OPENROUTER_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://openrouter.ai/api/v1/models",
+					URL:	"https://openrouter.ai/api/v1/models",
 					JSONPath:	"data.id",
 				},
 			},
 			"deepseek": {
-				Name:		"deepseek",
+				Name:	"deepseek",
 				BaseURL:	types.BaseURLValue{Single: "https://api.deepseek.com"},
 				EnvName:	"DEEP_SEEK_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://api.deepseek.com/models",
+					URL:	"https://api.deepseek.com/models",
 					JSONPath:	"data.id",
 				},
 			},
 			"anthropic": {
-				Name:		"anthropic",
+				Name:	"anthropic",
 				BaseURL:	types.BaseURLValue{Single: "https://api.anthropic.com/v1/"},
 				EnvName:	"ANTHROPIC_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://api.anthropic.com/v1/models",
+					URL:	"https://api.anthropic.com/v1/models",
 					JSONPath:	"data.id",
 				},
 			},
 			"xai": {
-				Name:		"xai",
+				Name:	"xai",
 				BaseURL:	types.BaseURLValue{Single: "https://api.x.ai/v1"},
 				EnvName:	"XAI_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://api.x.ai/v1/models",
+					URL:	"https://api.x.ai/v1/models",
 					JSONPath:	"data.id",
 				},
 			},
 			"ollama": {
-				Name:		"ollama",
+				Name:	"ollama",
 				BaseURL:	types.BaseURLValue{Single: "http://127.0.0.1:11434/v1"},
 				EnvName:	"ollama",
 				Models: types.PlatformModels{
-					URL:		"http://127.0.0.1:11434/api/tags",
+					URL:	"http://127.0.0.1:11434/api/tags",
 					JSONPath:	"models.name",
 				},
 			},
 			"together": {
-				Name:		"together",
+				Name:	"together",
 				BaseURL:	types.BaseURLValue{Single: "https://api.together.xyz/v1"},
 				EnvName:	"TOGETHER_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://api.together.xyz/v1/models",
+					URL:	"https://api.together.xyz/v1/models",
 					JSONPath:	"id",
 				},
 			},
 			"google": {
-				Name:		"google",
+				Name:	"google",
 				BaseURL:	types.BaseURLValue{Single: "https://generativelanguage.googleapis.com/v1beta/openai/"},
 				EnvName:	"GEMINI_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://generativelanguage.googleapis.com/v1beta/models",
+					URL:	"https://generativelanguage.googleapis.com/v1beta/models",
 					JSONPath:	"models.name",
 				},
 			},
 			"mistral": {
-				Name:		"mistral",
+				Name:	"mistral",
 				BaseURL:	types.BaseURLValue{Single: "https://api.mistral.ai/v1"},
 				EnvName:	"MISTRAL_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://api.mistral.ai/v1/models",
+					URL:	"https://api.mistral.ai/v1/models",
 					JSONPath:	"data.id",
 				},
 			},
@@ -373,7 +419,7 @@ func DefaultConfig() *types.Config {
 				},
 				EnvName:	"AWS_BEDROCK_API_KEY",
 				Models: types.PlatformModels{
-					URL:		"https://bedrock.us-west-2.amazonaws.com/foundation-models",
+					URL:	"https://bedrock.us-west-2.amazonaws.com/foundation-models",
 					JSONPath:	"modelSummaries.modelId",
 				},
 			},
@@ -407,14 +453,14 @@ func InitializeAppState() *types.AppState {
 		ChatHistory: []types.ChatHistory{
 			{Time: time.Now().Unix(), User: cfg.SystemPrompt, Bot: ""},
 		},
-		CurrentMode:		cfg.CurrentMode,
-		CurrentTheme:		cfg.CurrentTheme,
+		CurrentMode:	cfg.CurrentMode,
+		CurrentTheme:	cfg.CurrentTheme,
 		CurrentPersonality:	cfg.CurrentPersonality,
 		RecentlyCreatedFiles:	[]string{},
-		IsStreaming:		false,
+		IsStreaming:	false,
 		StreamingCancel:	nil,
 		IsExecutingCommand:	false,
-		CommandCancel:		nil,
+		CommandCancel:	nil,
 	}
 
 	return state

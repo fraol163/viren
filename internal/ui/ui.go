@@ -224,26 +224,63 @@ func (t *Terminal) IsTerminal() bool {
 func (t *Terminal) ShowHelp() {
 	t.ShowLogo()
 
-	fmt.Println("\n\033[1;94m❯ COMMANDS\033[0m")
+	fmt.Println("\n\033[1;94m❯ INTERACTIVE COMMANDS\033[0m")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!q", "Quit Viren")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!h", "Show help menu")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!c", "Clear history and screen")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!m [model]", "Switch AI model")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!p [plat]", "Switch platform")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!u", "Change personality")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!v", "Change domain mode")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!z", "Change theme")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!e [file]", "Export chat/code")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!b", "Backtrack history")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!a", "Manage sessions")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!y", "Copy to clipboard")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "cc", "Quick copy latest")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!d [dir]", "Dump codebase")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!x [cmd]", "Shell record/run")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!l [dir]", "Load files")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!s [url]", "Scrape URL")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!w [query]", "Web search")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!t [buff]", "Text editor")
+
+	fmt.Println("\n\033[1;92m❯ NEW AI COMMANDS\033[0m")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!r", "Regenerate response")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!explain", "Explain code")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!summarize", "Summarize content")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!test", "Generate tests")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!doc", "Generate docs")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!optimize", "Optimize code")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!git [cmd]", "Git with AI")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!compare f1 f2", "Compare files")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!translate lang", "Translate code")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!f /old/new/", "Find/replace")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "!cmd", "Show all commands")
+
+	fmt.Println("\n\033[1;94m❯ CLI FLAGS\033[0m")
 	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-h, --help", "Open this dashboard")
-	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-c, --continue", "Resume last conversation")
-	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-a, --history", "Manage sessions (Load/Delete)")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-c, --continue", "Resume last session")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-a, --history", "Manage sessions")
 	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-d [dir]", "Pack directory for AI")
 	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-p [plat]", "Switch platform")
 	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-m [model]", "Specify model")
-	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-l [file]", "Load file/URL context")
-	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-w [query]", "Search the web")
-	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-s [url]", "Scrape web content")
-	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-e, --export", "Export code blocks")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-l [file]", "Load file/URL")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-w [query]", "Search web")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-s [url]", "Scrape URL")
+	fmt.Printf("  \033[93m%-15s\033[0m %s\n", "-e, --export", "Export code")
 
 	fmt.Println("\n\033[1;94m❯ FEATURES\033[0m")
 	fmt.Println("  \033[38;2;0;0;0m•\033[0m \033[1mAuto-Command:\033[0m Detects and runs shell commands with confirmation.")
 	fmt.Println("  \033[38;2;0;0;0m•\033[0m \033[1mSession Mgr:\033[0m Interactive deletion and loading of past sessions.")
+	fmt.Println("  \033[38;2;0;0;0m•\033[0m \033[1mAI Analysis:\033[0m All context (files, web, git) automatically analyzed by AI.")
 
 	fmt.Println("\n\033[1;94m❯ USAGE EXAMPLES\033[0m")
 	fmt.Println("  \033[38;2;0;0;0m$\033[0m viren \"How does Docker work?\"")
 	fmt.Println("  \033[38;2;0;0;0m$\033[0m viren -p groq -m llama3 \"Write a Go web server\"")
-	fmt.Println("  \033[38;2;0;0;0m$\033[0m cat logs.txt | viren \"Find the error in these logs\"")
+	fmt.Println("  \033[38;2;0;0;0m$\033[0m cat logs.txt | viren \"Find the error\"")
+	fmt.Println("  \033[38;2;0;0;0m$\033[0m viren !git diff    # Analyze git diff with AI")
+	fmt.Println("  \033[38;2;0;0;0m$\033[0m viren !test        # Generate tests for code")
 
 	fmt.Println("\n\033[1;94m❯ CORE PLATFORMS\033[0m")
 	var platforms []string
@@ -1723,9 +1760,9 @@ type BraveSearchResult struct {
 }
 
 type BraveWebResult struct {
-	Title		string	`json:"title"`
-	URL		string	`json:"url"`
-	Description	string	`json:"description"`
+	Title	string		`json:"title"`
+	URL	string		`json:"url"`
+	Description	string		`json:"description"`
 }
 
 func (t *Terminal) formatBraveSearchResults(results []BraveWebResult, query string) string {
@@ -1954,9 +1991,9 @@ func (t *Terminal) copyResponsesTurn(chatHistory []types.ChatHistory) error {
 func (t *Terminal) copyResponsesBlock(chatHistory []types.ChatHistory) error {
 
 	type ExtractedBlock struct {
-		Content		string
+		Content	string
 		Language	string
-		Preview		string
+		Preview	string
 	}
 	var blocks []ExtractedBlock
 	var items []string

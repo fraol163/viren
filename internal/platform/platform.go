@@ -71,7 +71,7 @@ func (m *Manager) SendChatRequest(messages []types.ChatMessage, model string, st
 
 	for _, msg := range mergedMessages {
 		openaiMessages = append(openaiMessages, openai.ChatCompletionMessage{
-			Role:		msg.Role,
+			Role:	msg.Role,
 			Content:	msg.Content,
 		})
 	}
@@ -98,7 +98,7 @@ func (m *Manager) mergeConsecutiveUserMessages(messages []types.ChatMessage) []t
 
 			if len(lastUserContent) > 0 {
 				result = append(result, types.ChatMessage{
-					Role:		"user",
+					Role:	"user",
 					Content:	strings.Join(lastUserContent, "\n\n"),
 				})
 				lastUserContent = nil
@@ -109,7 +109,7 @@ func (m *Manager) mergeConsecutiveUserMessages(messages []types.ChatMessage) []t
 
 	if len(lastUserContent) > 0 {
 		result = append(result, types.ChatMessage{
-			Role:		"user",
+			Role:	"user",
 			Content:	strings.Join(lastUserContent, "\n\n"),
 		})
 	}
@@ -190,9 +190,9 @@ func (m *Manager) SelectPlatform(platformKey, modelName string, fzfSelector func
 
 		return map[string]interface{}{
 			"platform_name":	"openai",
-			"picked_model":		finalModel,
-			"base_url":		"",
-			"env_name":		"OPENAI_API_KEY",
+			"picked_model":	finalModel,
+			"base_url":	"",
+			"env_name":	"OPENAI_API_KEY",
 		}, nil
 	}
 
@@ -243,10 +243,10 @@ func (m *Manager) SelectPlatform(platformKey, modelName string, fzfSelector func
 
 	return map[string]interface{}{
 		"platform_name":	platformKey,
-		"picked_model":		finalModel,
-		"base_url":		selectedURL,
-		"env_name":		platform.EnvName,
-		"models":		modelsList,
+		"picked_model":	finalModel,
+		"base_url":	selectedURL,
+		"env_name":	platform.EnvName,
+		"models":	modelsList,
 	}, nil
 }
 
@@ -258,7 +258,7 @@ func (m *Manager) FetchAllModelsAsync() ([]string, error) {
 	var mu sync.Mutex
 
 	platformsToFetch := []struct {
-		name		string
+		name	string
 		platform	types.Platform
 	}{
 		{"openai", types.Platform{}},
@@ -266,7 +266,7 @@ func (m *Manager) FetchAllModelsAsync() ([]string, error) {
 
 	for name, platform := range m.config.Platforms {
 		platformsToFetch = append(platformsToFetch, struct {
-			name		string
+			name	string
 			platform	types.Platform
 		}{name, platform})
 	}
@@ -385,9 +385,9 @@ func (m *Manager) IsReasoningModel(modelName string) bool {
 
 func (m *Manager) sendNonStreamingRequest(openaiMessages []openai.ChatCompletionMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
 	req := openai.ChatCompletionRequest{
-		Model:		model,
+		Model:	model,
 		Messages:	openaiMessages,
-		Stream:		false,
+		Stream:	false,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -428,9 +428,9 @@ func (m *Manager) sendNonStreamingRequest(openaiMessages []openai.ChatCompletion
 
 func (m *Manager) sendStreamingRequest(openaiMessages []openai.ChatCompletionMessage, model string, streamingCancel *func(), isStreaming *bool, animationCancel context.CancelFunc, terminal *ui.Terminal) (string, error) {
 	req := openai.ChatCompletionRequest{
-		Model:		model,
+		Model:	model,
 		Messages:	openaiMessages,
-		Stream:		true,
+		Stream:	true,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

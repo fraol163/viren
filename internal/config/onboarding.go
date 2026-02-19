@@ -87,7 +87,7 @@ func RunOnboarding(terminal *ui.Terminal, cfg *types.Config) error {
 		"empathetic":	"Emotionally intelligent and supportive.",
 		"playful":	"Fun, energetic, and full of wit.",
 		"balanced":	"Versatile and adaptive.",
-		"rick":		"Rick Sanchez from C-137. Cynical, scientifically brilliant, and sarcastic.",
+		"rick":	"Rick Sanchez from C-137. Cynical, scientifically brilliant, and sarcastic.",
 	}
 	if mandate, ok := pMap[cfg.CurrentPersonality]; ok {
 		cfg.SystemPrompt += "--- PERSONALITY MANDATE ---\n" + mandate + "\n\n"

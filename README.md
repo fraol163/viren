@@ -48,7 +48,11 @@ As the spiritual successor to the **Cha** project, Viren takes the interactive A
     *   [Android (Termux)](#android-termux)
 6.  [Quick Start Guide](#8-quick-start-guide)
 7.  [Interactive Command Reference](#9-interactive-command-reference)
+    *   [Core Commands](#core-commands)
+    *   [NEW: AI-Powered Commands](#new-ai-powered-commands-v100)
+    *   [Key Improvements](#key-improvements-in-latest-version)
 8.  [Advanced Context Ingestion](#10-advanced-context-ingestion)
+    *   [Usage Examples](#usage-examples)
 9.  [Logic & Behavior](#11-logic--behavior)
     *   [AI Personalities](#ai-personalities)
     *   [Domain Modes](#domain-modes)
@@ -93,10 +97,14 @@ Web UIs are optimized for engagement and mouse clicks. Viren is optimized for **
 ## 5. Core Technical Features
 
 *   **Asynchronous Engine**: Viren uses background goroutines to handle animations, API requests, and terminal rendering simultaneously.
-*   **Intelligent Tokenization**: Built-in estimation tools allow you to check the "weight" of a file before sending it to the AI.
-*   **ANSI UI Framework**: A custom-built rendering engine that provides high-fidelity borders, boxes, and syntax highlighting.
+*   **Intelligent Tokenization**: Built-in estimation tools allow you to check the "weight" of a file before sending to the AI.
+*   **ANSI UI Framework**: A custom-built rendering engine providing high-fidelity borders, boxes, and syntax highlighting.
 *   **Session Persistence**: Every conversation is serialized to a local JSON database.
 *   **Dynamic Logic Injection**: Viren modifies the "System Prompt" in real-time based on your selection.
+*   **AI-Powered Analysis**: All context ingestion commands (`!d`, `!l`, `!x`, `!s`, `!w`, `!git`) automatically trigger AI analysis.
+*   **Code Operations Suite**: Built-in commands for explaining, testing, documenting, optimizing, and translating code.
+*   **File Comparison**: Compare multiple files with AI-powered diff analysis.
+*   **Smart Regeneration**: Regenerate AI responses without retyping prompts.
 
 ---
 
@@ -163,6 +171,8 @@ Unlike a native `.exe`, the WSL2 method ensures:
 
 Inside the `viren` shell, use these "Bang Commands":
 
+### Core Commands
+
 | Command | Category | Functional Capability |
 | :--- | :--- | :--- |
 | `!q` | Session | **Quit**: Safely exits and saves your history. |
@@ -173,12 +183,42 @@ Inside the `viren` shell, use these "Bang Commands":
 | `!u` | Tone | **Personality**: Switch between 7 AI personas. |
 | `!v` | Logic | **Mode**: Apply specialized domain prompts. |
 | `!z` | UI | **Theme**: Instantly change colors. |
-| `!x` | Ingestion | **Shell Record**: Capture terminal output. |
+| `!e` | Export | **Export**: Export chat history or code blocks. |
+| `!b` | Session | **Backtrack**: Return to previous conversation point. |
+| `!a` | Session | **History**: Browse/restore conversations. |
+| `!y` | Clipboard | **Copy**: Copy response to clipboard. |
+| `cc` | Clipboard | **Quick Copy**: Copy latest response. |
 | `!d` | Ingestion | **Codedump**: Bundle project for review. |
+| `!x` | Ingestion | **Shell Record**: Capture terminal output or run command. |
 | `!l` | Ingestion | **Load**: Inject specific files (Go, Py, PDF, etc.). |
 | `!s` | Ingestion | **Scrape**: Feed a website URL to the AI. |
 | `!w` | Ingestion | **Web Search**: Live search via Brave. |
-| `!a` | Session | **History**: Browse/restore conversations. |
+| `!t` | Editor | **Text Editor**: Open advanced editor mode. |
+| `\` | Input | **Multi-line**: Enter multi-line input mode. |
+
+### NEW: AI-Powered Commands (v1.0.0+)
+
+| Command | Category | Functional Capability | Example |
+| :--- | :--- | :--- | :--- |
+| `!r` | AI | **Regenerate**: Regenerate last AI response | `!r` |
+| `!explain` | AI | **Explain Code**: Step-by-step code explanation | `!explain` |
+| `!summarize` | AI | **Summarize**: Summarize content with key points | `!summarize` |
+| `!test` | AI | **Generate Tests**: Create unit tests for code | `!test` |
+| `!doc` | AI | **Generate Docs**: Create documentation for code | `!doc` |
+| `!optimize` | AI | **Optimize Code**: Improve performance & readability | `!optimize` |
+| `!git` | Integration | **Git + AI**: Run git commands with AI analysis | `!git diff` |
+| `!compare` | AI | **Compare Files**: Compare multiple files | `!compare file1.go file2.go` |
+| `!translate` | AI | **Translate Code**: Convert to another language | `!translate python` |
+| `!f` | AI | **Find/Replace**: Find and replace in code | `!f /old/new/` |
+| `!cmd` | Reference | **Command Reference**: Show all commands with examples | `!cmd` |
+
+### Key Improvements in Latest Version
+
+- **All context commands now include AI analysis** - When you use `!d`, `!l`, `!x`, `!s`, or `!w`, Viren now automatically analyzes the content and provides insights
+- **Visible processing** - See what's being scraped, loaded, or searched before AI responds
+- **Loading animations** - Clear indicators showing what the AI is doing (scraping, analyzing, comparing, etc.)
+- **Enhanced error handling** - Clear, actionable error messages for all commands
+- **Customizable command keys** - All commands can be rebound in `~/.viren/config.json`
 
 ---
 
@@ -186,6 +226,62 @@ Inside the `viren` shell, use these "Bang Commands":
 
 ### Codedump Protocol (`!d`)
 Automatically bundles your source code while respecting `.gitignore`. Perfect for architectural reviews or finding project-wide bugs.
+
+### Usage Examples
+
+```bash
+# Start interactive chat
+viren
+
+# Ask a question directly
+viren "How do I implement a binary search tree in Go?"
+
+# Continue last session
+viren -c
+
+# Search history and load session
+viren -a
+
+# Dump codebase for analysis
+viren -d ./src
+
+# Load files and ask questions
+viren -l main.go "Explain this code"
+
+# Web search with AI analysis
+viren -w "Go best practices"
+
+# Scrape URL and analyze
+viren -s https://golang.org/doc/tutorial
+
+# Export code blocks from last response
+viren -e
+
+# Pipe input to Viren
+cat error.log | viren "Find the root cause"
+
+# Use specific platform and model
+viren -p groq -m llama3 "Write a REST API"
+```
+
+### In-Chat Examples
+
+```
+!d              # Dump current directory codebase
+!l ./config     # Load all config files
+!s https://example.com  # Scrape and analyze website
+!w Go concurrency patterns  # Search and analyze
+!git diff       # Analyze git diff with AI
+!test           # Generate tests for loaded code
+!doc            # Generate documentation
+!optimize       # Optimize loaded code
+!explain        # Explain code step-by-step
+!compare main.go main_old.go  # Compare files
+!translate python  # Translate code to Python
+!f /old/new/    # Find and replace in code
+!r              # Regenerate last response
+!cmd            # Show all commands with examples
+```
 
 ---
 
@@ -219,9 +315,35 @@ Switch using `!v`. Each mode applies a heavy system mandate for specific technic
 ## 12. Configuration & Personalization
 
 Settings are stored in `~/.viren/config.json`.
+
+### Configurable Options
+
 *   **`user_profile`**: Your name, role, and professional ambition.
 *   **`shallow_load_dirs`**: Folders Viren will not scan recursively.
 *   **`current_theme`**: Set your preferred default look.
+*   **Command Keys**: All commands can be rebound (e.g., `"regenerate": "!r"`, `"explain_code": "!explain"`)
+*   **`current_platform`**: Default AI platform
+*   **`current_model`**: Default AI model
+*   **`enable_session_save`**: Enable/disable session persistence
+*   **`mute_notifications`**: Disable UI notifications
+
+### Example Config
+
+```json
+{
+  "regenerate": "!r",
+  "explain_code": "!explain",
+  "summarize": "!summarize",
+  "generate_tests": "!test",
+  "generate_docs": "!doc",
+  "optimize_code": "!optimize",
+  "git_command": "!git",
+  "compare_files": "!compare",
+  "translate_code": "!translate",
+  "find_replace": "!f",
+  "command_reference": "!cmd"
+}
+```
 
 ---
 
@@ -259,14 +381,36 @@ Viren is faster than Python-based tools and more context-aware than standard web
 - **FZF**: Required for menus.
 
 ```bash
+# Build from source
 make build
+
+# Or directly
+go build -o viren ./cmd/viren
 ```
 
 ---
 
 ## 18. Project Roadmap
 
-Phase 2 will include Llama.cpp integration and multimodal (image) ingestion.
+### Completed (v1.0.0+)
+- ✅ All original commands fixed and enhanced
+- ✅ AI-powered analysis for all context commands
+- ✅ 11 new AI commands (!r, !explain, !test, !doc, !optimize, !git, !compare, !translate, !f, !summarize, !cmd)
+- ✅ Visible processing with loading animations
+- ✅ Enhanced error handling
+- ✅ Customizable command keys
+
+### Phase 2 (In Progress)
+- Llama.cpp integration for local inference
+- Multimodal (image) ingestion and analysis
+- Voice input support
+- Plugin system for custom commands
+
+### Future Plans
+- Real-time collaboration features
+- Cloud sync (optional, privacy-focused)
+- Mobile app (iOS/Android)
+- VS Code extension
 
 ---
 
@@ -274,17 +418,73 @@ Phase 2 will include Llama.cpp integration and multimodal (image) ingestion.
 
 Viren is data-transparent. We do not have servers. Your data stays on your disk.
 
+- **No Cloud**: All requests go directly from your machine to the AI provider
+- **Local Storage**: Chat history stored in `~/.viren/` and temp files
+- **No Tracking**: No analytics, no telemetry, no user tracking
+- **Open Source**: All code is auditable on GitHub
+
 ---
 
 ## 20. Detailed Use Cases
 
-Use Viren for project auditing, bug hunting, fact-checking via web search, and automated code generation.
+### Code Development
+- **Project Auditing**: `!d` to dump codebase, get architectural analysis
+- **Bug Hunting**: `!l file.go` to load files, `!explain` to understand issues
+- **Code Generation**: Ask Viren to write functions, tests, or entire modules
+- **Refactoring**: `!optimize` to improve existing code
+- **Documentation**: `!doc` to generate docs for any code
+
+### Learning & Research
+- **Web Research**: `!w` to search and analyze topics
+- **Code Explanation**: `!explain` to understand complex code
+- **File Comparison**: `!compare` to see differences between versions
+- **Translation**: `!translate` to convert code between languages
+
+### DevOps & System Admin
+- **Git Analysis**: `!git diff/log/status` with AI explanations
+- **Log Analysis**: Pipe logs to Viren for root cause analysis
+- **Shell Automation**: `!x` to record and analyze shell sessions
 
 ---
 
 ## 21. Troubleshooting Strategy
 
-Ensure your API keys are exported and `fzf` is in your system path.
+### Common Issues
+
+**"No API key set"**
+```bash
+export OPENAI_API_KEY="your-key"
+# Or for other platforms:
+export GROQ_API_KEY="your-key"
+export ANTHROPIC_API_KEY="your-key"
+```
+
+**"fzf not found"**
+```bash
+# Install fzf
+brew install fzf          # macOS
+sudo apt install fzf      # Linux
+choco install fzf         # Windows (Chocolatey)
+```
+
+**"Command not working"**
+- Check if you're in interactive mode (type `viren` first)
+- Use `!cmd` to see all available commands
+- Check `~/.viren/config.json` for custom key bindings
+
+**"No search results"**
+- Ensure `BRAVE_API_KEY` is set for web search
+- Check your internet connection
+
+**Build Errors**
+```bash
+# Ensure Go 1.21+
+go version
+
+# Clean and rebuild
+go clean
+go build -o viren ./cmd/viren
+```
 
 ---
 

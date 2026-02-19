@@ -30,25 +30,25 @@ func NewManager(state *types.AppState) *Manager {
 
 func (m *Manager) AddUserMessage(content string) {
 	m.state.Messages = append(m.state.Messages, types.ChatMessage{
-		Role:		"user",
+		Role:	"user",
 		Content:	content,
 	})
 }
 
 func (m *Manager) AddAssistantMessage(content string) {
 	m.state.Messages = append(m.state.Messages, types.ChatMessage{
-		Role:		"assistant",
+		Role:	"assistant",
 		Content:	content,
 	})
 }
 
 func (m *Manager) AddToHistory(user, bot string) {
 	m.state.ChatHistory = append(m.state.ChatHistory, types.ChatHistory{
-		Time:		time.Now().Unix(),
-		User:		user,
-		Bot:		bot,
+		Time:	time.Now().Unix(),
+		User:	user,
+		Bot:	bot,
 		Platform:	m.state.Config.CurrentPlatform,
-		Model:		m.state.Config.CurrentModel,
+		Model:	m.state.Config.CurrentModel,
 	})
 }
 
@@ -148,8 +148,8 @@ func (m *Manager) SaveSessionState() error {
 	session := types.SessionFile{
 		Timestamp:	time.Now().Unix(),
 		Platform:	m.state.Config.CurrentPlatform,
-		Model:		m.state.Config.CurrentModel,
-		Mode:		m.state.Config.CurrentMode,
+		Model:	m.state.Config.CurrentModel,
+		Mode:	m.state.Config.CurrentMode,
 		Personality:	m.state.CurrentPersonality,
 		SystemPrompt:	m.state.Config.SystemPrompt,
 		BaseURL:	m.state.Config.CurrentBaseURL,
@@ -335,7 +335,7 @@ func (m *Manager) ManageSessions(terminal *ui.Terminal, exact bool) (*types.Sess
 
 		type SessionEntry struct {
 			FilePath	string
-			Preview		string
+			Preview	string
 			Timestamp	int64
 		}
 		var entries []SessionEntry
@@ -870,7 +870,7 @@ func (m *Manager) ExportChatBlock(terminal *ui.Terminal, targetFile string) (str
 	}
 
 	type ExtractedSnippet struct {
-		Content		string
+		Content	string
 		Language	string
 	}
 	var selectedSnippets []ExtractedSnippet
@@ -1312,17 +1312,17 @@ func (m *Manager) getLanguageExtension(language string) string {
 		"cpp":	"cpp", "c++": "cpp",
 		"csharp":	"cs", "cs": "cs",
 		"ruby":	"rb", "rb": "rb",
-		"php":		"php",
+		"php":	"php",
 		"swift":	"swift",
 		"kotlin":	"kt",
-		"rust":		"rs", "rs": "rs",
+		"rust":	"rs", "rs": "rs",
 		"html":	"html",
 		"css":	"css",
 		"json":	"json",
 		"yaml":	"yaml", "yml": "yaml",
 		"markdown":	"md", "md": "md",
 		"shell":	"sh", "sh": "sh", "bash": "sh",
-		"sql":		"sql",
+		"sql":	"sql",
 		"dockerfile":	"Dockerfile",
 		"makefile":	"Makefile",
 	}

@@ -79,7 +79,7 @@ func main() {
 		clearFlag	= flag.Bool("clear", false, "Clear latest session")
 		historyFlag	= flag.Bool("a", false, "Search and load previous sessions")
 		versionFlag	= flag.Bool("version", false, "Show version")
-		vFlag		= flag.Bool("v", false, "Show version")
+		vFlag	= flag.Bool("v", false, "Show version")
 	)
 	flag.StringVar(tokenFlag, "token", "", "Estimate token count in file")
 	flag.BoolVar(continueFlag, "continue", false, "Continue from latest session")
@@ -662,9 +662,9 @@ func processDirectQuery(query string, chatManager *chat.Manager, platformManager
 func runInteractiveMode(chatManager *chat.Manager, platformManager *platform.Manager, terminal *ui.Terminal, state *types.AppState, noHistory bool) {
 
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:			terminal.GetPrompt(),
+		Prompt:	terminal.GetPrompt(),
 		InterruptPrompt:	"",
-		EOFPrompt:		"exit",
+		EOFPrompt:	"exit",
 	})
 	if err != nil {
 		panic(err)
@@ -701,7 +701,7 @@ func runInteractiveMode(chatManager *chat.Manager, platformManager *platform.Man
 			}
 
 			multiLineRl, err := readline.NewEx(&readline.Config{
-				Prompt:		"... ",
+				Prompt:	"... ",
 				HistoryFile:	"/dev/null",
 			})
 			if err != nil {
@@ -1065,21 +1065,21 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		return true
 
 	case input == configObj.LoadFiles:
-		return handleFileLoad(chatManager, terminal, state, "")
+		return handleFileLoad(chatManager, terminal, state, platformManager, "")
 
 	case strings.HasPrefix(input, configObj.LoadFiles+" "):
 		dirPath := strings.TrimSpace(strings.TrimPrefix(input, configObj.LoadFiles+" "))
-		return handleFileLoad(chatManager, terminal, state, dirPath)
+		return handleFileLoad(chatManager, terminal, state, platformManager, dirPath)
 
 	case input == configObj.CodeDump:
-		return handleCodeDump(chatManager, terminal, state)
+		return handleCodeDump(chatManager, terminal, state, platformManager)
 
 	case input == configObj.ShellRecord:
 		if fromHelp {
 			fmt.Printf("\033[93m%s - record shell session\033[0m\n", configObj.ShellRecord)
 			return true
 		}
-		return handleShellRecord(chatManager, terminal, state)
+		return handleShellRecord(chatManager, terminal, state, platformManager)
 
 	case strings.HasPrefix(input, configObj.ShellRecord+" "):
 		command := strings.TrimPrefix(input, configObj.ShellRecord+" ")
@@ -1108,6 +1108,7 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 			terminal.PrintInfo("Content loaded into buffer")
 			return true
 		}
+		terminal.PrintError(fmt.Sprintf("unknown argument: %s. Use 'buff' for buffer mode.", arg))
 		return true
 
 	case input == configObj.EditorInput:
@@ -1195,14 +1196,13 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		}
 		return true
 
-	case input == "!a" || input == "!a exact":
-
+	case input == configObj.AnswerSearch || input == configObj.AnswerSearch+" exact":
 		if !configObj.SaveAllSessions {
 			terminal.PrintError("session search requires save_all_sessions to be enabled in config")
-
+			return true
 		}
 
-		exact := input == "!a exact"
+		exact := input == configObj.AnswerSearch+" exact"
 		session, err := chatManager.ManageSessions(terminal, exact)
 		if err != nil {
 			if err.Error() == "selection cancelled" {
@@ -1283,11 +1283,11 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 			return true
 		}
 
-		return handleScrapeURLs(selectedURLs, chatManager, terminal, state)
+		return handleScrapeURLs(selectedURLs, chatManager, terminal, state, platformManager)
 
 	case strings.HasPrefix(input, configObj.ScrapeURL+" "):
 		urls := strings.Fields(strings.TrimPrefix(input, configObj.ScrapeURL+" "))
-		return handleScrapeURLs(urls, chatManager, terminal, state)
+		return handleScrapeURLs(urls, chatManager, terminal, state, platformManager)
 
 	case input == configObj.WebSearch:
 		if fromHelp {
@@ -1312,11 +1312,11 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 			return true
 		}
 
-		return handleWebSearch(selectedSentence, chatManager, terminal, state)
+		return handleWebSearch(selectedSentence, chatManager, terminal, state, platformManager)
 
 	case strings.HasPrefix(input, configObj.WebSearch+" "):
 		query := strings.TrimPrefix(input, configObj.WebSearch+" ")
-		return handleWebSearch(query, chatManager, terminal, state)
+		return handleWebSearch(query, chatManager, terminal, state, platformManager)
 
 	case input == configObj.CopyToClipboard:
 		err := terminal.CopyResponsesInteractive(chatManager.GetChatHistory(), chatManager.GetMessages())
@@ -1339,7 +1339,7 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		terminal.PrintInfo("multi-line mode (exit with '\\')")
 
 		multiLineRl, err := readline.NewEx(&readline.Config{
-			Prompt:		"... ",
+			Prompt:	"... ",
 			HistoryFile:	"/dev/null",
 		})
 		if err != nil {
@@ -1399,12 +1399,57 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		chatManager.AddToHistory(fullInput, response)
 		return true
 
+	case input == configObj.Regenerate:
+		return handleRegenerate(chatManager, terminal, state, platformManager)
+
+	case input == configObj.ExplainCode:
+		return handleExplainCode(chatManager, terminal, state, platformManager)
+
+	case input == configObj.Summarize:
+		return handleSummarize(chatManager, terminal, state, platformManager)
+
+	case input == configObj.GenerateTests:
+		return handleGenerateTests(chatManager, terminal, state, platformManager)
+
+	case input == configObj.GenerateDocs:
+		return handleGenerateDocs(chatManager, terminal, state, platformManager)
+
+	case input == configObj.OptimizeCode:
+		return handleOptimizeCode(chatManager, terminal, state, platformManager)
+
+	case strings.HasPrefix(input, configObj.GitCommand+" "):
+		command := strings.TrimSpace(strings.TrimPrefix(input, configObj.GitCommand+" "))
+		return handleGitCommand(command, chatManager, terminal, state, platformManager)
+
+	case strings.HasPrefix(input, configObj.CompareFiles+" "):
+		files := strings.Fields(strings.TrimPrefix(input, configObj.CompareFiles+" "))
+		return handleCompareFiles(files, chatManager, terminal, state, platformManager)
+
+	case strings.HasPrefix(input, configObj.TranslateCode+" "):
+		targetLang := strings.TrimSpace(strings.TrimPrefix(input, configObj.TranslateCode+" "))
+		return handleTranslateCode(targetLang, chatManager, terminal, state, platformManager)
+
+	case strings.HasPrefix(input, configObj.FindReplace+" "):
+
+		arg := strings.TrimSpace(strings.TrimPrefix(input, configObj.FindReplace+" "))
+		if len(arg) >= 3 && arg[0] == '/' {
+			parts := strings.Split(arg[1:], "/")
+			if len(parts) >= 2 {
+				return handleFindReplace(parts[0], parts[1], chatManager, terminal, state)
+			}
+		}
+		terminal.PrintError("invalid format. Use: !f /old/new/")
+		return true
+
+	case input == configObj.CommandReference:
+		return handleCommandReference(terminal)
+
 	default:
 		return false
 	}
 }
 
-func handleFileLoad(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, dirPath string) bool {
+func handleFileLoad(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager, dirPath string) bool {
 	var files []string
 	var err error
 	var targetPath string
@@ -1469,7 +1514,20 @@ func handleFileLoad(chatManager *chat.Manager, terminal *ui.Terminal, state *typ
 	}
 
 	if content != "" {
-		chatManager.AddUserMessage(content)
+
+		terminal.PrintInfo(fmt.Sprintf("loaded %d file(s)", len(selections)))
+
+		preview := content
+		if len(preview) > 1500 {
+			preview = preview[:1500] + "\n\n... (content truncated)"
+		}
+
+		theme := terminal.GetTheme()
+		fmt.Printf("\n%s LOADED CONTENT \033[0m\n", theme.AssistantBox)
+		fmt.Printf("%s\n", strings.Repeat("─", 60))
+		fmt.Printf("%s\n", preview)
+		fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+
 		if dirPath != "" {
 			historySummary := fmt.Sprintf("Loaded from %s: %s", dirPath, strings.Join(selections, ", "))
 			chatManager.AddToHistory(historySummary, "")
@@ -1477,12 +1535,48 @@ func handleFileLoad(chatManager *chat.Manager, terminal *ui.Terminal, state *typ
 			historySummary := fmt.Sprintf("Loaded: %s", strings.Join(selections, ", "))
 			chatManager.AddToHistory(historySummary, "")
 		}
+
+		formattedContent := fmt.Sprintf("The user loaded the following files:\n\n---\n%s\n---", content)
+		chatManager.AddUserMessage(formattedContent)
+
+		terminal.PrintInfo("analyzing loaded content...")
+
+		ctx, animationCancel := context.WithCancel(context.Background())
+		go terminal.ShowLoadingAnimation(ctx, "analyzing")
+
+		response, err := platformManager.SendChatRequest(
+			chatManager.GetMessages(),
+			chatManager.GetCurrentModel(),
+			&state.StreamingCancel,
+			&state.IsStreaming,
+			animationCancel,
+			terminal,
+		)
+
+		animationCancel()
+
+		if err != nil {
+			if err.Error() == "request was interrupted" {
+				chatManager.RemoveLastUserMessage()
+				return true
+			}
+			terminal.PrintError(fmt.Sprintf("error analyzing content: %v", err))
+			return true
+		}
+
+		if !state.Config.IsPipedOutput {
+			fmt.Println()
+		}
+		theme = terminal.GetTheme()
+		fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+		chatManager.AddAssistantMessage(response)
 	}
 
 	return true
 }
 
-func handleCodeDump(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState) bool {
+func handleCodeDump(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
 	codedump, err := terminal.CodeDump()
 	if err != nil {
 		terminal.PrintError(fmt.Sprintf("error generating codedump: %v", err))
@@ -1490,14 +1584,60 @@ func handleCodeDump(chatManager *chat.Manager, terminal *ui.Terminal, state *typ
 	}
 
 	if codedump != "" {
-		chatManager.AddUserMessage(codedump)
+
+		preview := codedump
+		if len(preview) > 1500 {
+			preview = preview[:1500] + "\n\n... (content truncated)"
+		}
+
+		theme := terminal.GetTheme()
+		fmt.Printf("\n%s CODEDUMP CONTENT \033[0m\n", theme.AssistantBox)
+		fmt.Printf("%s\n", strings.Repeat("─", 60))
+		fmt.Printf("%s\n", preview)
+		fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+
 		chatManager.AddToHistory("Codedump loaded", "")
+		formattedContent := fmt.Sprintf("The user dumped the following codebase:\n\n---\n%s\n---", codedump)
+		chatManager.AddUserMessage(formattedContent)
+
+		terminal.PrintInfo("analyzing codebase...")
+
+		ctx, animationCancel := context.WithCancel(context.Background())
+		go terminal.ShowLoadingAnimation(ctx, "analyzing")
+
+		response, err := platformManager.SendChatRequest(
+			chatManager.GetMessages(),
+			chatManager.GetCurrentModel(),
+			&state.StreamingCancel,
+			&state.IsStreaming,
+			animationCancel,
+			terminal,
+		)
+
+		animationCancel()
+
+		if err != nil {
+			if err.Error() == "request was interrupted" {
+				chatManager.RemoveLastUserMessage()
+				return true
+			}
+			terminal.PrintError(fmt.Sprintf("error analyzing codebase: %v", err))
+			return true
+		}
+
+		if !state.Config.IsPipedOutput {
+			fmt.Println()
+		}
+		theme = terminal.GetTheme()
+		fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+		chatManager.AddAssistantMessage(response)
 	}
 
 	return true
 }
 
-func handleShellRecord(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState) bool {
+func handleShellRecord(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
 	sessionContent, err := terminal.RecordShellSession()
 	if err != nil {
 		terminal.PrintError(fmt.Sprintf("error recording shell session: %v", err))
@@ -1515,10 +1655,53 @@ func handleShellRecord(chatManager *chat.Manager, terminal *ui.Terminal, state *
 		}
 		cleanedContent := strings.Join(cleanedLines, "\n")
 
-		formattedContent := fmt.Sprintf("The user ran the following shell session and here is the output:\n\n---\n%s\n---", cleanedContent)
+		preview := cleanedContent
+		if len(preview) > 1500 {
+			preview = preview[:1500] + "\n\n... (content truncated)"
+		}
 
+		theme := terminal.GetTheme()
+		fmt.Printf("\n%s SHELL SESSION OUTPUT \033[0m\n", theme.AssistantBox)
+		fmt.Printf("%s\n", strings.Repeat("─", 60))
+		fmt.Printf("%s\n", preview)
+		fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+
+		formattedContent := fmt.Sprintf("The user ran the following shell session and here is the output:\n\n---\n%s\n---", cleanedContent)
 		chatManager.AddUserMessage(formattedContent)
 		chatManager.AddToHistory("Shell session loaded", "")
+
+		terminal.PrintInfo("analyzing shell session output...")
+
+		ctx, animationCancel := context.WithCancel(context.Background())
+		go terminal.ShowLoadingAnimation(ctx, "analyzing")
+
+		response, err := platformManager.SendChatRequest(
+			chatManager.GetMessages(),
+			chatManager.GetCurrentModel(),
+			&state.StreamingCancel,
+			&state.IsStreaming,
+			animationCancel,
+			terminal,
+		)
+
+		animationCancel()
+
+		if err != nil {
+			if err.Error() == "request was interrupted" {
+				chatManager.RemoveLastUserMessage()
+				return true
+			}
+			terminal.PrintError(fmt.Sprintf("error analyzing shell output: %v", err))
+			return true
+		}
+
+		if !state.Config.IsPipedOutput {
+			fmt.Println()
+		}
+		theme = terminal.GetTheme()
+		fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+		chatManager.AddAssistantMessage(response)
 	} else {
 		terminal.PrintInfo("no activity recorded in shell session")
 	}
@@ -1621,6 +1804,595 @@ func handleShellCommand(command string, chatManager *chat.Manager, terminal *ui.
 	chatManager.AddToHistory(fmt.Sprintf("!x %s", command), "Command executed and output added to context")
 
 	return true
+}
+
+func handleRegenerate(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	history := chatManager.GetChatHistory()
+	if len(history) < 2 {
+		terminal.PrintError("no previous conversation to regenerate")
+		return true
+	}
+
+	// Find the last user message
+	var lastUserMsg string
+	for i := len(history) - 1; i >= 0; i-- {
+		if history[i].User != "" && history[i].User != state.Config.SystemPrompt {
+			lastUserMsg = history[i].User
+			break
+		}
+	}
+
+	if lastUserMsg == "" {
+		terminal.PrintError("no user message found to regenerate")
+		return true
+	}
+
+	if len(history) > 1 && history[len(history)-1].Bot != "" {
+		chatManager.RemoveLastUserMessage()
+	}
+
+	terminal.PrintInfo("regenerating response...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "regenerating")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error regenerating: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+	chatManager.AddToHistory(lastUserMsg, response)
+
+	return true
+}
+
+func handleExplainCode(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	messages := chatManager.GetMessages()
+	if len(messages) < 2 {
+		terminal.PrintError("no code to explain")
+		return true
+	}
+
+	lastUserMsg := messages[len(messages)-1]
+	if lastUserMsg.Role != "user" {
+		terminal.PrintError("no code found to explain")
+		return true
+	}
+
+	prompt := fmt.Sprintf("Please explain the following code step by step in detail:\n\n%s", lastUserMsg.Content)
+
+	chatManager.AddUserMessage(prompt)
+	terminal.PrintInfo("explaining code...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "explaining")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error explaining code: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+
+	return true
+}
+
+func handleSummarize(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	messages := chatManager.GetMessages()
+	if len(messages) < 2 {
+		terminal.PrintError("no content to summarize")
+		return true
+	}
+
+	lastUserMsg := messages[len(messages)-1]
+	if lastUserMsg.Role != "user" {
+		terminal.PrintError("no content found to summarize")
+		return true
+	}
+
+	prompt := fmt.Sprintf("Please summarize the following content, highlighting the key points:\n\n%s", lastUserMsg.Content)
+
+	chatManager.AddUserMessage(prompt)
+	terminal.PrintInfo("summarizing content...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "summarizing")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error summarizing: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+
+	return true
+}
+
+func handleGenerateTests(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	code := extractLastCodeBlock(chatManager)
+	if code == "" {
+		terminal.PrintError("no code found to generate tests for")
+		return true
+	}
+
+	prompt := fmt.Sprintf("Generate comprehensive unit tests for the following code. Use best practices and cover edge cases:\n\n```%s", code)
+
+	chatManager.AddUserMessage(prompt)
+	terminal.PrintInfo("generating tests...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "generating tests")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error generating tests: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+
+	return true
+}
+
+func handleGenerateDocs(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	code := extractLastCodeBlock(chatManager)
+	if code == "" {
+		terminal.PrintError("no code found to generate documentation for")
+		return true
+	}
+
+	prompt := fmt.Sprintf("Generate comprehensive documentation for the following code. Include function descriptions, parameters, return values, and usage examples:\n\n```%s", code)
+
+	chatManager.AddUserMessage(prompt)
+	terminal.PrintInfo("generating documentation...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "generating docs")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error generating docs: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+
+	return true
+}
+
+func handleOptimizeCode(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	code := extractLastCodeBlock(chatManager)
+	if code == "" {
+		terminal.PrintError("no code found to optimize")
+		return true
+	}
+
+	prompt := fmt.Sprintf("Optimize the following code for performance, readability, and best practices. Explain the improvements:\n\n```%s", code)
+
+	chatManager.AddUserMessage(prompt)
+	terminal.PrintInfo("optimizing code...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "optimizing")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error optimizing code: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+
+	return true
+}
+
+func handleGitCommand(command string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	if command == "" {
+		terminal.PrintError("no git command specified")
+		return true
+	}
+
+	cmd := exec.Command("git", strings.Fields(command)...)
+	output, err := cmd.CombinedOutput()
+
+	var result string
+	if err != nil {
+		result = fmt.Sprintf("Git command '%s' failed:\nError: %v\nOutput:\n%s", command, err, string(output))
+	} else {
+		result = fmt.Sprintf("Git command '%s' succeeded:\n%s", command, string(output))
+	}
+
+	theme := terminal.GetTheme()
+	fmt.Printf("\n%s GIT OUTPUT \033[0m\n", theme.AssistantBox)
+	fmt.Printf("%s\n", strings.Repeat("─", 60))
+	fmt.Printf("%s\n", result)
+	fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+
+	formattedContent := fmt.Sprintf("The user ran the following git command: %s\n\n---\n%s\n---", command, result)
+	chatManager.AddUserMessage(formattedContent)
+	chatManager.AddToHistory(fmt.Sprintf("!git %s", command), "")
+
+	if strings.Contains(command, "diff") || strings.Contains(command, "log") || strings.Contains(command, "status") {
+		terminal.PrintInfo("analyzing git output...")
+
+		ctx, animationCancel := context.WithCancel(context.Background())
+		go terminal.ShowLoadingAnimation(ctx, "analyzing")
+
+		response, err := platformManager.SendChatRequest(
+			chatManager.GetMessages(),
+			chatManager.GetCurrentModel(),
+			&state.StreamingCancel,
+			&state.IsStreaming,
+			animationCancel,
+			terminal,
+		)
+
+		animationCancel()
+
+		if err != nil {
+			if err.Error() == "request was interrupted" {
+				chatManager.RemoveLastUserMessage()
+				return true
+			}
+			terminal.PrintError(fmt.Sprintf("error analyzing git output: %v", err))
+			return true
+		}
+
+		if !state.Config.IsPipedOutput {
+			fmt.Println()
+		}
+		theme = terminal.GetTheme()
+		fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+		chatManager.AddAssistantMessage(response)
+	}
+
+	return true
+}
+
+func handleCompareFiles(files []string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	if len(files) < 2 {
+		terminal.PrintError("please provide at least 2 files to compare")
+		return true
+	}
+
+	var contents []string
+	for _, file := range files {
+		content, err := os.ReadFile(file)
+		if err != nil {
+			terminal.PrintError(fmt.Sprintf("error reading file %s: %v", file, err))
+			return true
+		}
+		contents = append(contents, string(content))
+	}
+
+	var prompt strings.Builder
+	prompt.WriteString("Compare the following files and highlight the key differences, similarities, and improvements:\n\n")
+	for i, content := range contents {
+		prompt.WriteString(fmt.Sprintf("=== File %d: %s ===\n%s\n\n", i+1, files[i], content))
+	}
+
+	chatManager.AddUserMessage(prompt.String())
+	terminal.PrintInfo(fmt.Sprintf("comparing %d files...", len(files)))
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "comparing")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error comparing files: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+
+	return true
+}
+
+func handleTranslateCode(targetLang string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	code := extractLastCodeBlock(chatManager)
+	if code == "" {
+		terminal.PrintError("no code found to translate")
+		return true
+	}
+
+	if targetLang == "" {
+		terminal.PrintError("please specify target language (e.g., !translate python)")
+		return true
+	}
+
+	prompt := fmt.Sprintf("Translate the following code to %s. Maintain the same functionality and follow best practices for the target language:\n\n```%s", targetLang, code)
+
+	chatManager.AddUserMessage(prompt)
+	terminal.PrintInfo(fmt.Sprintf("translating code to %s...", targetLang))
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "translating")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error translating code: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme := terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
+
+	return true
+}
+
+func handleFindReplace(find, replace string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState) bool {
+	if find == "" {
+		terminal.PrintError("please specify text to find (e.g., !f /old/new/)")
+		return true
+	}
+
+	code := extractLastCodeBlock(chatManager)
+	if code == "" {
+		terminal.PrintError("no code found to perform find/replace")
+		return true
+	}
+
+	newCode := strings.ReplaceAll(code, find, replace)
+
+	theme := terminal.GetTheme()
+	fmt.Printf("\n%s FIND/REPLACE RESULT \033[0m\n", theme.AssistantBox)
+	fmt.Printf("%s\n", strings.Repeat("─", 60))
+	fmt.Printf("Replaced '%s' with '%s'\n\n", find, replace)
+	fmt.Printf("Result:\n```%s\n```\n", newCode)
+	fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+
+	terminal.PrintInfo("find/replace completed. Use !e to export code blocks.")
+
+	return true
+}
+
+func handleCommandReference(terminal *ui.Terminal) bool {
+	commands := getCommandReference()
+
+	theme := terminal.GetTheme()
+	fmt.Printf("\n%s COMMAND REFERENCE \033[0m\n", theme.AssistantBox)
+	fmt.Printf("%s\n", strings.Repeat("═", 70))
+
+	for _, cmd := range commands {
+		fmt.Printf("\n\033[1;96m%s\033[0m - %s\n", cmd.Command, cmd.Description)
+		fmt.Printf("  \033[93mUsage:\033[0m %s\n", cmd.Usage)
+		if cmd.Example != "" {
+			fmt.Printf("  \033[92mExample:\033[0m %s\n", cmd.Example)
+		}
+	}
+
+	fmt.Printf("\n%s\n", strings.Repeat("═", 70))
+	fmt.Printf("\033[96mTotal commands:\033[0m %d\n", len(commands))
+
+	return true
+}
+
+type CommandInfo struct {
+	Command	string
+	Description	string
+	Usage	string
+	Example	string
+}
+
+func getCommandReference() []CommandInfo {
+	return []CommandInfo{
+
+		{"!q", "Quit Viren", "!q", ""},
+		{"!h", "Show help menu", "!h", ""},
+		{"!c", "Clear chat history and screen", "!c", ""},
+		{"!m", "Switch AI model", "!m [model]", "!m gpt-4"},
+		{"!p", "Switch AI platform", "!p [platform]", "!p anthropic"},
+		{"!u", "Change AI personality", "!u", ""},
+		{"!v", "Change domain mode", "!v", ""},
+		{"!z", "Change theme", "!z", ""},
+		{"!e", "Export chat or code blocks", "!e [filename]", "!e output.txt"},
+		{"!b", "Backtrack chat history", "!b", ""},
+		{"!a", "Manage/load sessions", "!a [exact]", "!a exact"},
+		{"!y", "Copy response to clipboard", "!y", ""},
+		{"cc", "Quick copy latest response", "cc", ""},
+		{"!d", "Dump codebase for analysis", "!d [dir]", "!d ./src"},
+		{"!x", "Record shell session or run command", "!x [command]", "!x ls -la"},
+		{"!l", "Load files into context", "!l [dir]", "!l ./config"},
+		{"!s", "Scrape URL content", "!s [url]", "!s https://example.com"},
+		{"!w", "Web search", "!w [query]", "!w Go programming"},
+		{"!t", "Open text editor", "!t [buff]", "!t buff"},
+		{"\\", "Multi-line input mode", "\\", ""},
+
+		{"!r", "Regenerate last AI response", "!r", ""},
+		{"!explain", "Explain code in detail", "!explain", ""},
+		{"!summarize", "Summarize content", "!summarize", ""},
+		{"!test", "Generate unit tests for code", "!test", ""},
+		{"!doc", "Generate documentation for code", "!doc", ""},
+		{"!optimize", "Optimize code for performance", "!optimize", ""},
+		{"!git", "Run git commands with AI analysis", "!git [command]", "!git diff"},
+		{"!compare", "Compare multiple files", "!compare file1 file2", "!compare main.go main_old.go"},
+		{"!translate", "Translate code to another language", "!translate [language]", "!translate python"},
+		{"!f", "Find and replace in code", "!f /old/new/", "!f /foo/bar/"},
+		{"!cmd", "Show this command reference", "!cmd", ""},
+	}
+}
+
+func extractLastCodeBlock(chatManager *chat.Manager) string {
+	messages := chatManager.GetMessages()
+	if len(messages) == 0 {
+		return ""
+	}
+
+	lastMsg := messages[len(messages)-1]
+	content := lastMsg.Content
+
+	codeBlockRegex := regexp.MustCompile("(?s)```([a-zA-Z0-9]*)\n(.*?)\n```")
+	matches := codeBlockRegex.FindAllStringSubmatch(content, -1)
+
+	if len(matches) > 0 {
+		lastMatch := matches[len(matches)-1]
+		return lastMatch[2]
+	}
+
+	return content
 }
 
 func isValidCodedumpDir(dirPath string) bool {
@@ -1840,11 +2612,13 @@ func handleFlagWithPrompt(chatManager *chat.Manager, platformManager *platform.M
 	return nil
 }
 
-func handleScrapeURLs(urls []string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState) bool {
+func handleScrapeURLs(urls []string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
 	if len(urls) == 0 {
 		terminal.PrintError("no URLs provided")
 		return true
 	}
+
+	terminal.PrintInfo(fmt.Sprintf("scraping %d URL(s)...", len(urls)))
 
 	content, err := terminal.ScrapeURLs(urls)
 	if err != nil {
@@ -1852,20 +2626,70 @@ func handleScrapeURLs(urls []string, chatManager *chat.Manager, terminal *ui.Ter
 		return true
 	}
 
-	if content != "" {
-		chatManager.AddUserMessage(content)
-		historySummary := fmt.Sprintf("Scraped: %s", strings.Join(urls, ", "))
-		chatManager.AddToHistory(historySummary, "")
+	if content == "" || strings.TrimSpace(content) == "" {
+		terminal.PrintError("no content could be extracted from the provided URLs")
+		return true
 	}
+
+	theme := terminal.GetTheme()
+	fmt.Printf("\n%s SCRAPED CONTENT \033[0m\n", theme.AssistantBox)
+	fmt.Printf("%s\n", strings.Repeat("─", 60))
+
+	preview := content
+	if len(preview) > 2000 {
+		preview = preview[:2000] + "\n\n... (content truncated, full content sent to AI)"
+	}
+	fmt.Printf("%s\n", preview)
+	fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+
+	formattedContent := fmt.Sprintf("The user scraped the following content from URL(s): %s\n\n---\n%s\n---", strings.Join(urls, ", "), content)
+	chatManager.AddUserMessage(formattedContent)
+	historySummary := fmt.Sprintf("Scraped: %s", strings.Join(urls, ", "))
+	chatManager.AddToHistory(historySummary, "")
+
+	terminal.PrintInfo("analyzing scraped content...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "analyzing")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error analyzing content: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme = terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
 
 	return true
 }
 
-func handleWebSearch(query string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState) bool {
+func handleWebSearch(query string, chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
 	if query == "" {
 		terminal.PrintError("no search query provided")
 		return true
 	}
+
+	terminal.PrintInfo(fmt.Sprintf("searching web for: %s", query))
 
 	content, err := terminal.WebSearch(query)
 	if err != nil {
@@ -1873,11 +2697,54 @@ func handleWebSearch(query string, chatManager *chat.Manager, terminal *ui.Termi
 		return true
 	}
 
-	if content != "" {
-		chatManager.AddUserMessage(content)
-		historySummary := fmt.Sprintf("Web search: %s", query)
-		chatManager.AddToHistory(historySummary, "")
+	if content == "" || strings.TrimSpace(content) == "" {
+		terminal.PrintError("no search results found")
+		return true
 	}
+
+	theme := terminal.GetTheme()
+	fmt.Printf("\n%s SEARCH RESULTS \033[0m\n", theme.AssistantBox)
+	fmt.Printf("%s\n", strings.Repeat("─", 60))
+	fmt.Printf("%s\n", content)
+	fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+
+	formattedContent := fmt.Sprintf("The user performed a web search for: %s\n\n---\n%s\n---", query, content)
+	chatManager.AddUserMessage(formattedContent)
+	historySummary := fmt.Sprintf("Web search: %s", query)
+	chatManager.AddToHistory(historySummary, "")
+
+	terminal.PrintInfo("analyzing search results...")
+
+	ctx, animationCancel := context.WithCancel(context.Background())
+	go terminal.ShowLoadingAnimation(ctx, "analyzing")
+
+	response, err := platformManager.SendChatRequest(
+		chatManager.GetMessages(),
+		chatManager.GetCurrentModel(),
+		&state.StreamingCancel,
+		&state.IsStreaming,
+		animationCancel,
+		terminal,
+	)
+
+	animationCancel()
+
+	if err != nil {
+		if err.Error() == "request was interrupted" {
+			chatManager.RemoveLastUserMessage()
+			return true
+		}
+		terminal.PrintError(fmt.Sprintf("error analyzing search results: %v", err))
+		return true
+	}
+
+	if !state.Config.IsPipedOutput {
+		fmt.Println()
+	}
+	theme = terminal.GetTheme()
+	fmt.Printf("%s ASSISTANT \033[0m ❯ \033[92m%s\033[0m\n", theme.AssistantBox, response)
+
+	chatManager.AddAssistantMessage(response)
 
 	return true
 }
@@ -1946,7 +2813,7 @@ func handleAllModels(chatManager *chat.Manager, platformManager *platform.Manage
 
 	type modelInfo struct {
 		platform	string
-		model		string
+		model	string
 	}
 	modelMap := make(map[string]modelInfo)
 

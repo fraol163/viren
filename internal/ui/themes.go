@@ -5,8 +5,8 @@ import "github.com/fraol163/viren/pkg/types"
 func GetThemes() []types.Theme {
 	return []types.Theme{
 		{
-			ID:		"deepspace",
-			Name:		"Deep Space (FZX)",
+			ID:	"deepspace",
+			Name:	"Deep Space (FZX)",
 			LogoColor:	"\033[38;2;0;255;255m",
 			UserBox:	"\033[38;2;0;0;0;48;2;0;102;204m",
 			AssistantBox:	"\033[38;2;0;0;0;48;2;0;204;102m",
@@ -21,8 +21,8 @@ func GetThemes() []types.Theme {
 			FgColor:	"\033]10;#00FFFF\007",
 		},
 		{
-			ID:		"neonfuture",
-			Name:		"Neon Future (FZX)",
+			ID:	"neonfuture",
+			Name:	"Neon Future (FZX)",
 			LogoColor:	"\033[38;2;255;0;255m",
 			UserBox:	"\033[38;2;0;0;0;48;2;57;255;20m",
 			AssistantBox:	"\033[38;2;0;0;0;48;2;255;0;255m",
@@ -37,8 +37,8 @@ func GetThemes() []types.Theme {
 			FgColor:	"\033]10;#FF00FF\007",
 		},
 		{
-			ID:		"retrowave",
-			Name:		"Retro Wave (FZX)",
+			ID:	"retrowave",
+			Name:	"Retro Wave (FZX)",
 			LogoColor:	"\033[38;2;255;106;213m",
 			UserBox:	"\033[38;2;0;0;0;48;2;5;213;250m",
 			AssistantBox:	"\033[38;2;0;0;0;48;2;255;106;213m",
@@ -53,8 +53,8 @@ func GetThemes() []types.Theme {
 			FgColor:	"\033]10;#FF6AD5\007",
 		},
 		{
-			ID:		"greenglow",
-			Name:		"Green Glow (FZX)",
+			ID:	"greenglow",
+			Name:	"Green Glow (FZX)",
 			LogoColor:	"\033[38;2;0;255;0m",
 			UserBox:	"\033[38;2;0;0;0;48;2;0;255;0m",
 			AssistantBox:	"\033[38;2;0;0;0;48;2;0;153;0m",
@@ -69,8 +69,8 @@ func GetThemes() []types.Theme {
 			FgColor:	"\033]10;#00FF00\007",
 		},
 		{
-			ID:		"purpledream",
-			Name:		"Purple Dream (FZX)",
+			ID:	"purpledream",
+			Name:	"Purple Dream (FZX)",
 			LogoColor:	"\033[38;2;153;51;255m",
 			UserBox:	"\033[38;2;0;0;0;48;2;102;0;204m",
 			AssistantBox:	"\033[38;2;0;0;0;48;2;204;51;255m",
@@ -85,8 +85,8 @@ func GetThemes() []types.Theme {
 			FgColor:	"\033]10;#9933FF\007",
 		},
 		{
-			ID:		"darkmode",
-			Name:		"Dark Mode (FZX)",
+			ID:	"darkmode",
+			Name:	"Dark Mode (FZX)",
 			LogoColor:	"\033[38;2;255;255;255m",
 			UserBox:	"\033[38;2;0;0;0;48;2;60;60;60m",
 			AssistantBox:	"\033[38;2;0;0;0;48;2;180;180;180m",
@@ -101,8 +101,8 @@ func GetThemes() []types.Theme {
 			FgColor:	"\033]10;#FFFFFF\007",
 		},
 		{
-			ID:		"systemlight",
-			Name:		"System Light",
+			ID:	"systemlight",
+			Name:	"System Light",
 			LogoColor:	"\033[38;2;0;0;0m",
 			UserBox:	"\033[38;2;255;255;255;48;2;0;120;215m",
 			AssistantBox:	"\033[38;2;255;255;255;48;2;16;124;16m",
@@ -117,8 +117,8 @@ func GetThemes() []types.Theme {
 			FgColor:	"\033]10;#000000\007",
 		},
 		{
-			ID:		"systemdark",
-			Name:		"System Dark",
+			ID:	"systemdark",
+			Name:	"System Dark",
 			LogoColor:	"\033[38;2;255;255;255m",
 			UserBox:	"\033[38;2;0;0;0;48;2;0;120;212m",
 			AssistantBox:	"\033[38;2;0;0;0;48;2;16;124;16m",

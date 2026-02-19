@@ -131,16 +131,16 @@ install_dependencies() {
 		fi
 	done
 
-	if [[ ${#missing_required[@]} -eq 0 ]] && [[ ${#missing_optional[@]} -eq 0 ]]; then
+	if [[ ${
 		log "All dependencies already installed"
 		return
 	fi
 
-	if [[ ${#missing_required[@]} -gt 0 ]]; then
+	if [[ ${
 		log "The following required system dependencies are missing: ${missing_required[*]}"
 	fi
 
-	if [[ ${#missing_optional[@]} -gt 0 ]]; then
+	if [[ ${
 		log "The following optional system dependencies are missing: ${missing_optional[*]}"
 	fi
 
@@ -614,7 +614,7 @@ update_version() {
 
 	echo "Current version: $current_version"
 
-	local version_number="${current_version#v}"
+	local version_number="${current_version
 
 	if [[ ! "$version_number" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
 		error "Invalid version format. Expected format: v1.2.3 or 1.2.3"
@@ -721,7 +721,7 @@ main() {
 		is_remote_install=true
 	fi
 
-	while [[ $# -gt 0 ]]; do
+	while [[ $
 		case "$1" in
 		-u | --uninstall)
 			uninstall_viren

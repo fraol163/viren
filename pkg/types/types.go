@@ -137,6 +137,11 @@ type Config struct {
 	TranslateCode	string		`json:"translate_code,omitempty"`
 	FindReplace	string		`json:"find_replace,omitempty"`
 	CommandReference	string		`json:"command_reference,omitempty"`
+	// UI commands (configurable)
+	ModeSwitch	string		`json:"mode_switch,omitempty"`
+	ThemeSwitch	string		`json:"theme_switch,omitempty"`
+	PersonalitySwitch	string		`json:"personality_switch,omitempty"`
+	Onboarding	string		`json:"onboarding,omitempty"`
 }
 
 type ExportEntry struct {

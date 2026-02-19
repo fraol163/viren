@@ -932,7 +932,7 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 	case input == configObj.AllModels:
 		return handleAllModels(chatManager, platformManager, terminal, state)
 
-	case input == "!v":
+	case input == configObj.ModeSwitch:
 		modes := chat.GetModes()
 		var modeNames []string
 		for _, m := range modes {
@@ -964,7 +964,7 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		}
 		return true
 
-	case input == "!z":
+	case input == configObj.ThemeSwitch:
 		themes := ui.GetThemes()
 		var themeNames []string
 		for _, t := range themes {
@@ -1007,7 +1007,7 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		}
 		return true
 
-	case input == "!onboard":
+	case input == configObj.Onboarding:
 		err := config.RunOnboarding(terminal, state.Config)
 		if err != nil {
 			terminal.PrintError(fmt.Sprintf("onboarding failed: %v", err))
@@ -1034,7 +1034,7 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 		}
 		return true
 
-	case input == "!u":
+	case input == configObj.PersonalitySwitch:
 		personalities := chat.GetPersonalities()
 		var pNames []string
 		for _, p := range personalities {

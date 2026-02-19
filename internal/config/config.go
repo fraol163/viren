@@ -192,6 +192,19 @@ func mergeConfigs(defaultConfig, userConfig *types.Config) *types.Config {
 	if userConfig.CommandReference != "" {
 		defaultConfig.CommandReference = userConfig.CommandReference
 	}
+	// UI commands merge
+	if userConfig.ModeSwitch != "" {
+		defaultConfig.ModeSwitch = userConfig.ModeSwitch
+	}
+	if userConfig.ThemeSwitch != "" {
+		defaultConfig.ThemeSwitch = userConfig.ThemeSwitch
+	}
+	if userConfig.PersonalitySwitch != "" {
+		defaultConfig.PersonalitySwitch = userConfig.PersonalitySwitch
+	}
+	if userConfig.Onboarding != "" {
+		defaultConfig.Onboarding = userConfig.Onboarding
+	}
 
 	if userConfig.DefaultModel != "" || userConfig.CurrentPlatform != "" || userConfig.SystemPrompt != "" || userConfig.ShowSearchResults {
 		defaultConfig.ShowSearchResults = userConfig.ShowSearchResults
@@ -307,6 +320,11 @@ func DefaultConfig() *types.Config {
 		TranslateCode:	"!translate",
 		FindReplace:	"!f",
 		CommandReference:	"!cmd",
+		// UI commands with defaults
+		ModeSwitch:	"!v",
+		ThemeSwitch:	"!z",
+		PersonalitySwitch:	"!u",
+		Onboarding:	"!onboard",
 		Platforms: map[string]types.Platform{
 			"groq": {
 				Name:	"groq",

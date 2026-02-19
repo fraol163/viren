@@ -20,6 +20,7 @@ import (
 	"github.com/fraol163/viren/internal/config"
 	"github.com/fraol163/viren/internal/platform"
 	"github.com/fraol163/viren/internal/ui"
+	"github.com/fraol163/viren/internal/updater"
 	"github.com/fraol163/viren/internal/util"
 	"github.com/fraol163/viren/pkg/types"
 	"github.com/google/uuid"
@@ -660,6 +661,8 @@ func processDirectQuery(query string, chatManager *chat.Manager, platformManager
 }
 
 func runInteractiveMode(chatManager *chat.Manager, platformManager *platform.Manager, terminal *ui.Terminal, state *types.AppState, noHistory bool) {
+
+	checkAndNotifyUpdates(terminal, state)
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:	terminal.GetPrompt(),
@@ -1443,6 +1446,9 @@ func handleSpecialCommandsInternal(input string, chatManager *chat.Manager, plat
 
 	case input == configObj.CommandReference:
 		return handleCommandReference(terminal)
+
+	case input == configObj.UpdateCommand:
+		return handleUpdate(chatManager, terminal, state, platformManager)
 
 	default:
 		return false
@@ -2371,6 +2377,7 @@ func getCommandReference() []CommandInfo {
 		{"!compare", "Compare multiple files", "!compare file1 file2", "!compare main.go main_old.go"},
 		{"!translate", "Translate code to another language", "!translate [language]", "!translate python"},
 		{"!f", "Find and replace in code", "!f /old/new/", "!f /foo/bar/"},
+		{"!update", "Check and install updates", "!update", ""},
 		{"!cmd", "Show this command reference", "!cmd", ""},
 	}
 }
@@ -2393,6 +2400,104 @@ func extractLastCodeBlock(chatManager *chat.Manager) string {
 	}
 
 	return content
+}
+
+func handleUpdate(chatManager *chat.Manager, terminal *ui.Terminal, state *types.AppState, platformManager *platform.Manager) bool {
+	updateManager := updater.NewManager(version, terminal)
+
+	terminal.PrintInfo("checking for updates...")
+
+	hasUpdate, release, err := updateManager.CheckForUpdates()
+	if err != nil {
+		terminal.PrintError(fmt.Sprintf("update check failed: %v", err))
+		terminal.PrintInfo("will retry on next run")
+		return true
+	}
+
+	if !hasUpdate {
+		terminal.PrintInfo(fmt.Sprintf("you're running the latest version (%s)", version))
+		return true
+	}
+
+	theme := terminal.GetTheme()
+	fmt.Printf("\n%s UPDATE AVAILABLE \033[0m\n", theme.InfoBox)
+	fmt.Printf("%s\n", strings.Repeat("─", 60))
+	fmt.Printf("Current version: \033[91m%s\033[0m\n", version)
+	fmt.Printf("Latest version:  \033[92m%s\033[0m\n", strings.TrimPrefix(release.TagName, "v"))
+	fmt.Printf("Released: %s\n\n", release.PublishedAt)
+	
+	if release.Body != "" {
+		lines := strings.Split(release.Body, "\n")
+		for i, line := range lines {
+			if i >= 10 {
+				fmt.Println("...")
+				break
+			}
+			fmt.Printf("  %s\n", line)
+		}
+		fmt.Println()
+	}
+
+	fmt.Printf("%s\n\n", strings.Repeat("─", 60))
+	fmt.Print("\033[1;36mDownload and install update? (y/N) ❯ \033[0m")
+
+	var confirm string
+	reader := bufio.NewReader(os.Stdin)
+	confirm, _ = reader.ReadString('\n')
+	confirm = strings.TrimSpace(strings.ToLower(confirm))
+
+	if confirm != "y" && confirm != "yes" {
+		terminal.PrintInfo("update cancelled")
+		return true
+	}
+
+	err = updateManager.DownloadUpdate(release, nil)
+	if err != nil {
+		terminal.PrintError(fmt.Sprintf("download failed: %v", err))
+		terminal.PrintInfo("download will resume on next !update command")
+		return true
+	}
+
+	err = updateManager.InstallUpdate(release)
+	if err != nil {
+		terminal.PrintError(fmt.Sprintf("installation failed: %v", err))
+		terminal.PrintInfo("your original version is intact")
+		return true
+	}
+
+	return true
+}
+
+func checkAndNotifyUpdates(terminal *ui.Terminal, state *types.AppState) {
+	if !state.Config.AutoUpdate {
+		return
+	}
+
+	now := time.Now().Unix()
+	lastCheck := state.Config.LastUpdateCheck
+	
+	if lastCheck > 0 && now-lastCheck < 86400 {
+		return
+	}
+
+	updateManager := updater.NewManager(version, terminal)
+	hasUpdate, release, err := updateManager.CheckForUpdates()
+	
+	state.Config.LastUpdateCheck = now
+	config.SaveConfigToFile(state.Config)
+
+	if err != nil || !hasUpdate {
+		return
+	}
+
+	fmt.Printf("\n\033[96m╭────────────────────────────────────────────────────╮\033[0m\n")
+	fmt.Printf("\033[96m│\033[0m \033[1;93mUPDATE AVAILABLE\033[0m                                    \033[96m│\033[0m\n")
+	fmt.Printf("\033[96m│\033[0m                                                      \033[96m│\033[0m\n")
+	fmt.Printf("\033[96m│\033[0m New version: \033[92m%s\033[0m (Current: \033[91m%s\033[0m)                   \033[96m│\033[0m\n", strings.TrimPrefix(release.TagName, "v"), version)
+	fmt.Printf("\033[96m│\033[0m Released: %-44s\033[96m│\033[0m\n", release.PublishedAt)
+	fmt.Printf("\033[96m│\033[0m                                                      \033[96m│\033[0m\n")
+	fmt.Printf("\033[96m│\033[0m \033[93mType !update to install\033[0m                              \033[96m│\033[0m\n")
+	fmt.Printf("\033[96m╰────────────────────────────────────────────────────╯\033[0m\n\n")
 }
 
 func isValidCodedumpDir(dirPath string) bool {

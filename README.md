@@ -105,6 +105,11 @@ Web UIs are optimized for engagement and mouse clicks. Viren is optimized for **
 *   **Code Operations Suite**: Built-in commands for explaining, testing, documenting, optimizing, and translating code.
 *   **File Comparison**: Compare multiple files with AI-powered diff analysis.
 *   **Smart Regeneration**: Regenerate AI responses without retyping prompts.
+*   **🆕 Auto-Update System**: Self-updating with resume capability, progress display, and backup/restore.
+*   **🆕 Resume Downloads**: Interrupted downloads automatically resume from checkpoint.
+*   **🆕 Release Notes Display**: Shows "What's New" after each update with feature highlights.
+*   **🆕 Enhanced Help System**: Beautiful help display with latest features prominently shown.
+*   **🆕 Full Config Customization**: Every command key can be rebound in config.
 
 ---
 
@@ -219,6 +224,11 @@ Inside the `viren` shell, use these "Bang Commands":
 - **Loading animations** - Clear indicators showing what the AI is doing (scraping, analyzing, comparing, etc.)
 - **Enhanced error handling** - Clear, actionable error messages for all commands
 - **Customizable command keys** - All commands can be rebound in `~/.viren/config.json`
+- **🆕 Auto-Update System** - Viren checks for updates on startup and can update itself with `!update`
+  - Automatic update notifications
+  - Resume capability for interrupted downloads
+  - Backup and restore on failure
+  - Configurable auto-update checks
 
 ---
 
@@ -318,32 +328,111 @@ Settings are stored in `~/.viren/config.json`.
 
 ### Configurable Options
 
-*   **`user_profile`**: Your name, role, and professional ambition.
-*   **`shallow_load_dirs`**: Folders Viren will not scan recursively.
-*   **`current_theme`**: Set your preferred default look.
-*   **Command Keys**: All commands can be rebound (e.g., `"regenerate": "!r"`, `"explain_code": "!explain"`)
-*   **`current_platform`**: Default AI platform
-*   **`current_model`**: Default AI model
-*   **`enable_session_save`**: Enable/disable session persistence
-*   **`mute_notifications`**: Disable UI notifications
+**All commands can be rebound!** Edit `~/.viren/config.json`:
 
-### Example Config
+*   **Core Commands**: `exit_key`, `help_key`, `clear_history`, `model_switch`, `platform_switch`
+*   **UI Commands**: `mode_switch` (!v), `theme_switch` (!z), `personality_switch` (!u)
+*   **Export/Import**: `export_chat`, `copy_to_clipboard`, `quick_copy_latest`
+*   **Context Loading**: `load_files` (!l), `code_dump` (!d), `shell_record` (!x)
+*   **Web Features**: `web_search` (!w), `scrape_url` (!s)
+*   **Session Mgr**: `answer_search` (!a), `backtrack` (!b)
+*   **AI Commands**: `regenerate` (!r), `explain_code` (!explain), `summarize` (!summarize)
+*   **Code Ops**: `generate_tests` (!test), `generate_docs` (!doc), `optimize_code` (!optimize)
+*   **Integration**: `git_command` (!git), `compare_files` (!compare), `translate_code` (!translate)
+*   **Utilities**: `find_replace` (!f), `command_reference` (!cmd), `editor_input` (!t), `onboarding` (!onboard), `update_command` (!update)
+*   **Other**: `all_models` (!o), `multi_line` (\\), `preferred_editor`
+*   **Update System**: `auto_update` (true/false), `last_update_check` (timestamp)
+
+### Complete Config Example
 
 ```json
 {
+  "exit_key": "!q",
+  "help_key": "!h",
+  "clear_history": "!c",
+  "model_switch": "!m",
+  "platform_switch": "!p",
+  
+  "mode_switch": "!v",
+  "theme_switch": "!z",
+  "personality_switch": "!u",
+  "onboarding": "!onboard",
+  
   "regenerate": "!r",
   "explain_code": "!explain",
   "summarize": "!summarize",
   "generate_tests": "!test",
   "generate_docs": "!doc",
   "optimize_code": "!optimize",
+  
   "git_command": "!git",
   "compare_files": "!compare",
   "translate_code": "!translate",
   "find_replace": "!f",
-  "command_reference": "!cmd"
+  "command_reference": "!cmd",
+  
+  "load_files": "!l",
+  "code_dump": "!d",
+  "shell_record": "!x",
+  "web_search": "!w",
+  "scrape_url": "!s",
+  "answer_search": "!a",
+  "backtrack": "!b",
+  "export_chat": "!e",
+  "editor_input": "!t",
+  
+  "current_platform": "openai",
+  "current_model": "gpt-4.1-mini",
+  "current_theme": "deepspace",
+  "enable_session_save": true,
+  "mute_notifications": false,
+  "auto_update": true
 }
 ```
+
+---
+
+## Auto-Update System
+
+Viren includes a built-in self-update mechanism that keeps your installation current without manual reinstallation.
+
+### How It Works
+
+1. **Automatic Check**: On startup, Viren checks GitHub for new releases (once per day)
+2. **Notification**: If an update is available, you'll see a notification box
+3. **Manual Trigger**: Type `!update` anytime to check and install updates
+4. **Download**: Updates are downloaded with progress display
+5. **Install**: Binary is replaced atomically with backup protection
+6. **Resume**: Failed downloads resume automatically on next `!update`
+
+### Features
+
+- **Resume Capability**: Interrupted downloads resume from where they left off
+- **Error Handling**: Network failures, timeouts, and interruptions are handled gracefully
+- **Backup & Restore**: Original binary is backed up and restored if installation fails
+- **Progress Display**: Real-time download progress with percentage and size
+- **Configurable**: Disable auto-checks with `"auto_update": false` in config
+
+### Usage
+
+```bash
+# Manual update check and install
+viren
+!update
+
+# Disable auto-update checks
+# Edit ~/.viren/config.json:
+{
+  "auto_update": false
+}
+```
+
+### Error Recovery
+
+If an update fails:
+- **Network error**: Run `!update` again - download will resume
+- **Installation error**: Original binary is automatically restored
+- **Partial download**: Deleted after 24 hours to save space
 
 ---
 
@@ -392,25 +481,33 @@ go build -o viren ./cmd/viren
 
 ## 18. Project Roadmap
 
-### Completed (v1.0.0+)
+### ✅ Completed (v1.0.0+)
 - ✅ All original commands fixed and enhanced
-- ✅ AI-powered analysis for all context commands
+- ✅ AI-powered analysis for all context commands (`!d`, `!l`, `!x`, `!s`, `!w`, `!git`)
 - ✅ 11 new AI commands (!r, !explain, !test, !doc, !optimize, !git, !compare, !translate, !f, !summarize, !cmd)
 - ✅ Visible processing with loading animations
 - ✅ Enhanced error handling
-- ✅ Customizable command keys
+- ✅ Customizable command keys (all commands rebindable)
+- ✅ **Auto-Update System** with resume capability
+- ✅ **Release Notes Display** after updates
+- ✅ **Enhanced Help System** with feature highlights
+- ✅ **Network Failure Recovery** for downloads
+- ✅ **Backup & Restore** on update failure
+- ✅ **Progress Display** for all operations
 
 ### Phase 2 (In Progress)
 - Llama.cpp integration for local inference
 - Multimodal (image) ingestion and analysis
 - Voice input support
 - Plugin system for custom commands
+- Update channels (stable/beta/nightly)
 
 ### Future Plans
 - Real-time collaboration features
 - Cloud sync (optional, privacy-focused)
 - Mobile app (iOS/Android)
 - VS Code extension
+- SSH remote server mode
 
 ---
 

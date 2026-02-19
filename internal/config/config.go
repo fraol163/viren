@@ -205,6 +205,14 @@ func mergeConfigs(defaultConfig, userConfig *types.Config) *types.Config {
 	if userConfig.Onboarding != "" {
 		defaultConfig.Onboarding = userConfig.Onboarding
 	}
+	// Update system merge
+	defaultConfig.AutoUpdate = userConfig.AutoUpdate
+	if userConfig.UpdateCommand != "" {
+		defaultConfig.UpdateCommand = userConfig.UpdateCommand
+	}
+	if userConfig.LastUpdateCheck > 0 {
+		defaultConfig.LastUpdateCheck = userConfig.LastUpdateCheck
+	}
 
 	if userConfig.DefaultModel != "" || userConfig.CurrentPlatform != "" || userConfig.SystemPrompt != "" || userConfig.ShowSearchResults {
 		defaultConfig.ShowSearchResults = userConfig.ShowSearchResults
@@ -325,6 +333,9 @@ func DefaultConfig() *types.Config {
 		ThemeSwitch:	"!z",
 		PersonalitySwitch:	"!u",
 		Onboarding:	"!onboard",
+		// Update system
+		AutoUpdate:	true,
+		UpdateCommand:	"!update",
 		Platforms: map[string]types.Platform{
 			"groq": {
 				Name:	"groq",

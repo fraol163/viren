@@ -142,6 +142,10 @@ type Config struct {
 	ThemeSwitch	string		`json:"theme_switch,omitempty"`
 	PersonalitySwitch	string		`json:"personality_switch,omitempty"`
 	Onboarding	string		`json:"onboarding,omitempty"`
+	// Update system
+	AutoUpdate		bool		`json:"auto_update,omitempty"`
+	UpdateCommand	string		`json:"update_command,omitempty"`
+	LastUpdateCheck	int64		`json:"last_update_check,omitempty"`
 }
 
 type ExportEntry struct {

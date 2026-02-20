@@ -271,6 +271,7 @@ func (t *Terminal) ShowHelp() {
 
 	fmt.Println("\n\033[1;95m❯ SYSTEM\033[0m")
 	fmt.Printf("  \033[93m%-20s\033[0m %s\n", "!update", "Check & install updates ⭐")
+	fmt.Printf("  \033[93m%-20s\033[0m %s\n", "!o", "All models (interactive)")
 	fmt.Printf("  \033[93m%-20s\033[0m %s\n", "!cmd", "Full command reference")
 	fmt.Printf("  \033[93m%-20s\033[0m %s\n", "!onboard", "Re-run onboarding")
 	fmt.Printf("  \033[93m%-20s\033[0m %s\n", "\\", "Multi-line input")
@@ -279,6 +280,8 @@ func (t *Terminal) ShowHelp() {
 	fmt.Println("\033[38;2;0;0;0m" + strings.Repeat("━", 64) + "\033[0m")
 	fmt.Println(" \033[1;92mRUN 'viren' FOR INTERACTIVE CHAT\033[0m")
 	fmt.Println("\033[38;2;0;0;0m" + strings.Repeat("━", 64) + "\033[0m")
+	fmt.Println()
+	fmt.Println("\033[96mTotal: 33 commands available\033[0m")
 }
 
 func (t *Terminal) RecordShellSession() (string, error) {

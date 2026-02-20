@@ -272,6 +272,18 @@ cat error.log | viren "Find the root cause"
 
 # Use specific platform and model
 viren -p groq -m llama3 "Write a REST API"
+
+# Set platform and model in one flag
+viren -o "groq|llama3" "Hello in Go"
+
+# Estimate tokens in a file
+viren -t main.go
+
+# Show version
+viren -v
+
+# Clear session files
+viren --clear
 ```
 
 ### In-Chat Examples
@@ -339,9 +351,9 @@ Settings are stored in `~/.viren/config.json`.
 *   **AI Commands**: `regenerate` (!r), `explain_code` (!explain), `summarize` (!summarize)
 *   **Code Ops**: `generate_tests` (!test), `generate_docs` (!doc), `optimize_code` (!optimize)
 *   **Integration**: `git_command` (!git), `compare_files` (!compare), `translate_code` (!translate)
-*   **Utilities**: `find_replace` (!f), `command_reference` (!cmd), `editor_input` (!t), `onboarding` (!onboard), `update_command` (!update)
-*   **Other**: `all_models` (!o), `multi_line` (\\), `preferred_editor`
-*   **Update System**: `auto_update` (true/false), `last_update_check` (timestamp)
+*   **Utilities**: `find_replace` (!f), `command_reference` (!cmd), `editor_input` (!t), `onboarding` (!onboard), `update_command` (!update), `all_models` (!o)
+*   **Other**: `multi_line` (\\), `preferred_editor`
+*   **Update System**: `auto_update` (true/false), `update_command` (!update), `last_update_check` (timestamp)
 
 ### Complete Config Example
 

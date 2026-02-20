@@ -271,7 +271,7 @@ install_dependencies() {
 	esac
 }
 
-build_ch() {
+build_viren() {
 	log "Creating installation directory $VIREN_HOME"
 	mkdir -p "$BIN_DIR" || error "Failed to create directory $BIN_DIR"
 
@@ -281,7 +281,7 @@ build_ch() {
 	log "Building Viren..."
 	go mod download || error "Failed to download Go modules"
 
-	local bin_path="$BIN_DIR/ch"
+	local bin_path="$BIN_DIR/viren"
 	execute_build "direct" "$bin_path"
 
 	chmod +x "$bin_path" || error "Failed to make binary executable"
@@ -359,12 +359,12 @@ execute_build() {
 create_symlink() {
 	local os
 	os=$(detect_os)
-	local source_path="$BIN_DIR/ch"
+	local source_path="$BIN_DIR/viren"
 
 	if [[ "$os" == "android" ]]; then
-		log "Creating symlink for 'ch' in \$PREFIX/bin"
+		log "Creating symlink for 'viren' in \$PREFIX/bin"
 		local target_dir="$PREFIX/bin"
-		local symlink_path="$target_dir/ch"
+		local symlink_path="$target_dir/viren"
 
 		if [[ ! -d "$target_dir" ]]; then
 			mkdir -p "$target_dir" || error "Failed to create directory $target_dir"
@@ -373,9 +373,9 @@ create_symlink() {
 		ln -sf "$source_path" "$symlink_path"
 		log "Symlink created: $symlink_path -> $source_path"
 	else
-		log "Attempting to create symlink for 'ch' in a directory in your PATH"
+		log "Attempting to create symlink for 'viren' in a directory in your PATH"
 		local target_dir="/usr/local/bin"
-		local symlink_path="$target_dir/ch"
+		local symlink_path="$target_dir/viren"
 
 		# Try to create symlink without sudo first
 		if [[ -d "$target_dir" ]] && [[ -w "$target_dir" ]]; then
@@ -463,7 +463,7 @@ print_success() {
 
 	echo
 	echo -e "To get started, simply type:"
-	echo -e "\033[91mch\033[0m"
+	echo -e "\033[91mviren\033[0m"
 }
 
 check_git_and_pull() {
@@ -474,13 +474,13 @@ check_git_and_pull() {
 	git pull || error "Failed to pull latest changes from git"
 }
 
-_install_ch_from_repo() {
+_install_viren_from_repo() {
 	log "Starting Viren installation process from local repository..."
 	SYMLINK_SKIPPED=false
 	mkdir -p "$VIREN_HOME"
 	check_go
 	install_dependencies
-	build_ch
+	build_viren
 	create_symlink
 	print_success
 }
@@ -777,7 +777,7 @@ main() {
 		fi
 
 		check_git_and_pull
-		_install_ch_from_repo
+		_install_viren_from_repo
 	else
 		log "Welcome to the Viren installer!"
 		log "This script will download and install Viren on your system"
@@ -787,7 +787,7 @@ main() {
 		fi
 
 		local temp_dir
-		temp_dir="$HOME/.viren/tmp/ch-install-$$"
+		temp_dir="$HOME/.viren/tmp/viren-install-$$"
 		mkdir -p "$temp_dir" || error "Failed to create temporary directory"
 
 		trap "rm -rf '$temp_dir'" EXIT
@@ -797,7 +797,7 @@ main() {
 
 		cd "$temp_dir" || error "Failed to enter the temporary directory"
 
-		_install_ch_from_repo
+		_install_viren_from_repo
 
 		log "Cleaning up temporary files..."
 	fi

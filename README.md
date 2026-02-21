@@ -159,6 +159,7 @@ Unlike a native `.exe`, the WSL2 method ensures:
 ### Android (Termux)
 1. Install Termux.
 2. Run the Linux installation script. Viren detects Termux and disables CGO for maximum compatibility.
+3. First you must update and upgrade dependencies 
 
 ---
 
